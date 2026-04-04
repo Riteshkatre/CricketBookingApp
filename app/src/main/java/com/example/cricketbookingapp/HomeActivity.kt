@@ -8,6 +8,7 @@ import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.firestore.ListenerRegistration
 import java.io.File
 import java.io.FileOutputStream
 import java.text.ParseException
@@ -30,19 +32,21 @@ import java.util.Date
 import java.util.Locale
 
 class HomeActivity : AppCompatActivity() {
-    private val allBookings = listOf(
-        BookingItem("Morning Turf Match", "10 Apr 2026", "07:00 AM", "Rs. 1200"),
-        BookingItem("Weekend Practice Nets", "12 Apr 2026", "05:30 PM", "Rs. 850"),
-        BookingItem("Corporate Cricket League", "15 Apr 2026", "08:15 PM", "Rs. 2000"),
-        BookingItem("Night Knockout Booking", "18 Apr 2026", "09:00 PM", "Rs. 1500")
-    )
+    private var allBookings: List<BookingItem> = emptyList()
     private lateinit var bookingAdapter: BookingAdapter
-    private var visibleBookings: List<BookingItem> = allBookings
+    private var visibleBookings: List<BookingItem> = emptyList()
     private var selectedSingleDate: String? = null
     private var selectedRangeStartDate: String? = null
     private var selectedRangeEndDate: String? = null
     private var searchQuery: String = ""
     private val bookingDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    private lateinit var dateFilterButton: MaterialButton
+    private lateinit var clearDateFilterButton: AppCompatImageButton
+    private lateinit var userNameText: TextView
+    private lateinit var profileInitialsText: TextView
+    private lateinit var noDataText: TextView
+    private var bookingListener: ListenerRegistration? = null
+    private var currentUserDisplayName: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,11 +61,14 @@ class HomeActivity : AppCompatActivity() {
 
         val recyclerView = findViewById<RecyclerView>(R.id.bookingRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        bookingAdapter = BookingAdapter(allBookings)
+        bookingAdapter = BookingAdapter(emptyList())
         recyclerView.adapter = bookingAdapter
 
-        val dateFilterButton = findViewById<MaterialButton>(R.id.dateFilterButton)
-        val clearDateFilterButton = findViewById<AppCompatImageButton>(R.id.clearDateFilterButton)
+        userNameText = findViewById(R.id.userNameText)
+        profileInitialsText = findViewById(R.id.profileInitialsText)
+        noDataText = findViewById(R.id.noDataText)
+        dateFilterButton = findViewById(R.id.dateFilterButton)
+        clearDateFilterButton = findViewById(R.id.clearDateFilterButton)
         val printPdfButton = findViewById<MaterialButton>(R.id.printPdfButton)
         val bookingSearchView = findViewById<SearchView>(R.id.bookingSearchView)
 
@@ -99,6 +106,36 @@ class HomeActivity : AppCompatActivity() {
         findViewById<FloatingActionButton>(R.id.addBookingButton).setOnClickListener {
             startActivity(Intent(this, AddBookingActivity::class.java))
         }
+
+        FirebaseRepository.loadCurrentUserProfile(
+            onSuccess = { profile ->
+                currentUserDisplayName = profile.fullName.ifBlank { getString(R.string.default_user_name) }
+                userNameText.text = currentUserDisplayName
+                profileInitialsText.text = profile.initials
+            },
+            onError = {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        bookingListener = FirebaseRepository.listenToBookings(
+            onUpdate = { bookings ->
+                allBookings = bookings
+                applyFilters()
+            },
+            onError = {
+                Toast.makeText(this, getString(R.string.loading_bookings_failed), Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    override fun onStop() {
+        bookingListener?.remove()
+        bookingListener = null
+        super.onStop()
     }
 
     private fun openDateFilterChoiceDialog(
@@ -200,6 +237,7 @@ class HomeActivity : AppCompatActivity() {
         }
         visibleBookings = filteredBookings
         bookingAdapter.updateBookings(filteredBookings)
+        noDataText.visibility = if (filteredBookings.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun exportBookingsToPdf() {
@@ -237,7 +275,7 @@ class HomeActivity : AppCompatActivity() {
         fun drawHeader() {
             canvas.drawText(getString(R.string.pdf_title), 40f, y.toFloat(), titlePaint)
             y += 30
-            canvas.drawText(getString(R.string.home_user_name), 40f, y.toFloat(), bodyPaint)
+            canvas.drawText(currentUserDisplayName.ifBlank { getString(R.string.default_user_name) }, 40f, y.toFloat(), bodyPaint)
             y += 30
         }
 
@@ -288,7 +326,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun getBookingsForPdf(): List<BookingItem> {
-        return allBookings.filter { booking -> matchesSelectedDate(booking.date) }
+        return visibleBookings
     }
 
     private fun matchesSelectedDate(bookingDate: String): Boolean {

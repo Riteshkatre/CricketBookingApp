@@ -17,6 +17,7 @@
     <string name="sign_up_saved_message">Sign up details saved</string>
     <string name="home_greeting">Welcome back</string>
     <string name="home_user_name">Ritesh Katre</string>
+    <string name="default_user_name">Cricket User</string>
     <string name="profile_initials">RK</string>
     <string name="search_hint">Search bookings</string>
     <string name="filter_date_label">Select Date</string>
@@ -38,4 +39,25 @@
     <string name="open_pdf_chooser">Open PDF</string>
     <string name="pdf_generation_failed">Unable to create PDF</string>
     <string name="no_bookings_to_print">No booking data available to print</string>
+    <string name="enter_all_sign_in_fields">Enter email and password</string>
+    <string name="enter_sign_in_email_password">Enter email and password</string>
+    <string name="enter_all_sign_up_fields">Fill all sign-up fields</string>
+    <string name="invalid_mobile_number">Enter a valid 10 digit mobile number</string>
+    <string name="invalid_email">Enter a valid email address</string>
+    <string name="password_min_length">Password must be at least 6 characters</string>
+    <string name="sign_in_failed">Unable to sign in</string>
+    <string name="sign_up_failed">Unable to sign up</string>
+    <string name="mobile_not_registered">This mobile number is not registered</string>
+    <string name="booking_added_message">Event added successfully</string>
+    <string name="enter_all_booking_fields">Fill all booking fields</string>
+    <string name="invalid_booking_amount">Enter a valid amount</string>
+    <string name="end_must_be_after_start">End date and time must be after start date and time</string>
+    <string name="loading_bookings_failed">Unable to load events</string>
+    <string name="mobile_already_registered">Mobile number already registered</string>
+    <string name="loading_message">Please wait...</string>
+    <string name="no_data_here">No data here</string>
+    <string name="booking_name_required">Enter booking name</string>
+    <string name="start_date_required">Select start date and time</string>
+    <string name="end_date_required">Select end date and time</string>
+    <string name="amount_required">Enter amount</string>
 </resources>

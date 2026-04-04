@@ -10,8 +10,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
-import java.text.SimpleDateFormat
+import com.google.android.material.textfield.TextInputLayout
 import java.util.Calendar
 import java.util.Locale
 
@@ -33,13 +34,81 @@ class AddBookingActivity : AppCompatActivity() {
 
         val startDateTimeInput = findViewById<TextInputEditText>(R.id.startDateTimeInput)
         val endDateTimeInput = findViewById<TextInputEditText>(R.id.endDateTimeInput)
+        val bookingNameInput = findViewById<TextInputEditText>(R.id.bookingNameInput)
+        val amountInput = findViewById<TextInputEditText>(R.id.amountInput)
+        val submitButton = findViewById<MaterialButton>(R.id.submitBookingButton)
+        val addBookingLoader = findViewById<CircularProgressIndicator>(R.id.addBookingLoader)
+        val bookingNameLayout = findViewById<TextInputLayout>(R.id.bookingNameLayout)
+        val startDateTimeLayout = findViewById<TextInputLayout>(R.id.startDateTimeLayout)
+        val endDateTimeLayout = findViewById<TextInputLayout>(R.id.endDateTimeLayout)
+        val amountLayout = findViewById<TextInputLayout>(R.id.amountLayout)
 
         configureDateTimeField(startDateTimeInput)
         configureDateTimeField(endDateTimeInput)
 
-        findViewById<MaterialButton>(R.id.submitBookingButton).setOnClickListener {
-            Toast.makeText(this, getString(R.string.booking_submitted_message), Toast.LENGTH_SHORT).show()
-            finish()
+        submitButton.setOnClickListener {
+            bookingNameLayout.error = null
+            startDateTimeLayout.error = null
+            endDateTimeLayout.error = null
+            amountLayout.error = null
+
+            val bookingName = bookingNameInput.text?.toString()?.trim().orEmpty()
+            val amount = amountInput.text?.toString()?.trim().orEmpty()
+            val startMillis = startDateTimeInput.tag as? Long
+            val endMillis = endDateTimeInput.tag as? Long
+
+            when {
+                bookingName.isBlank() -> {
+                    bookingNameLayout.error = getString(R.string.booking_name_required)
+                    bookingNameInput.requestFocus()
+                    return@setOnClickListener
+                }
+                startMillis == null -> {
+                    startDateTimeLayout.error = getString(R.string.start_date_required)
+                    startDateTimeInput.requestFocus()
+                    return@setOnClickListener
+                }
+                endMillis == null -> {
+                    endDateTimeLayout.error = getString(R.string.end_date_required)
+                    endDateTimeInput.requestFocus()
+                    return@setOnClickListener
+                }
+                amount.isBlank() -> {
+                    amountLayout.error = getString(R.string.amount_required)
+                    amountInput.requestFocus()
+                    return@setOnClickListener
+                }
+                amount.toDoubleOrNull() == null -> {
+                    amountLayout.error = getString(R.string.invalid_booking_amount)
+                    amountInput.requestFocus()
+                    return@setOnClickListener
+                }
+                endMillis <= startMillis -> {
+                    endDateTimeLayout.error = getString(R.string.end_must_be_after_start)
+                    return@setOnClickListener
+                }
+            }
+
+            submitButton.isEnabled = false
+            addBookingLoader.visibility = android.view.View.VISIBLE
+            FirebaseRepository.addBooking(
+                bookingName = bookingName,
+                startDateTimeMillis = startMillis,
+                endDateTimeMillis = endMillis,
+                amount = amount,
+                onSuccess = {
+                    submitButton.isEnabled = true
+                    addBookingLoader.visibility = android.view.View.GONE
+                    Toast.makeText(this, getString(R.string.booking_added_message), Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                },
+                onError = { error ->
+                    submitButton.isEnabled = true
+                    addBookingLoader.visibility = android.view.View.GONE
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 
@@ -68,8 +137,12 @@ class AddBookingActivity : AppCompatActivity() {
                     { _, hourOfDay, minute ->
                         calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                         calendar.set(Calendar.MINUTE, minute)
-                        val formatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-                        input.setText(formatter.format(calendar.time))
+                        val formatted = java.text.SimpleDateFormat(
+                            "dd MMM yyyy, hh:mm a",
+                            Locale.getDefault()
+                        ).format(calendar.time)
+                        input.setText(formatted)
+                        input.tag = calendar.timeInMillis
                     },
                     calendar.get(Calendar.HOUR_OF_DAY),
                     calendar.get(Calendar.MINUTE),

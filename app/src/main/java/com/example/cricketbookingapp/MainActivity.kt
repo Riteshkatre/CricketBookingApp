@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.tabs.TabLayout
 
@@ -26,10 +27,17 @@ class MainActivity : AppCompatActivity() {
         val tabLayout = findViewById<TabLayout>(R.id.authTabs)
         val signInContainer = findViewById<View>(R.id.signInContainer)
         val signUpContainer = findViewById<View>(R.id.signUpContainer)
-        val mobileInput = findViewById<TextInputEditText>(R.id.signInMobileInput)
+        val emailInput = findViewById<TextInputEditText>(R.id.signInEmailInput)
         val passwordInput = findViewById<TextInputEditText>(R.id.signInPasswordInput)
         val submitButton = findViewById<MaterialButton>(R.id.signInSubmitButton)
+        val signUpFirstNameInput = findViewById<TextInputEditText>(R.id.signUpFirstNameInput)
+        val signUpLastNameInput = findViewById<TextInputEditText>(R.id.signUpLastNameInput)
+        val signUpMobileInput = findViewById<TextInputEditText>(R.id.signUpMobileInput)
+        val signUpEmailInput = findViewById<TextInputEditText>(R.id.signUpEmailInput)
+        val signUpPasswordInput = findViewById<TextInputEditText>(R.id.signUpPasswordInput)
         val saveButton = findViewById<MaterialButton>(R.id.signUpSaveButton)
+        val signInLoader = findViewById<CircularProgressIndicator>(R.id.signInLoader)
+        val signUpLoader = findViewById<CircularProgressIndicator>(R.id.signUpLoader)
 
         fun showTab(position: Int) {
             signInContainer.visibility = if (position == 0) View.VISIBLE else View.GONE
@@ -48,20 +56,93 @@ class MainActivity : AppCompatActivity() {
         })
 
         submitButton.setOnClickListener {
-            val mobile = mobileInput.text?.toString()?.trim()
+            val email = emailInput.text?.toString()?.trim()
             val password = passwordInput.text?.toString()?.trim()
 
-            if (mobile == "6265784954" && password == "1234") {
-                SessionManager.setSignedIn(this, true)
-                startActivity(Intent(this, HomeActivity::class.java))
-                finish()
-            } else {
-                Toast.makeText(this, getString(R.string.invalid_sign_in_message), Toast.LENGTH_SHORT).show()
+            if (email.isNullOrBlank() || password.isNullOrBlank()) {
+                Toast.makeText(this, getString(R.string.enter_sign_in_email_password), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, getString(R.string.invalid_email), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            submitButton.isEnabled = false
+            signInLoader.visibility = View.VISIBLE
+            FirebaseRepository.signInWithEmail(
+                email = email,
+                password = password,
+                onSuccess = {
+                    submitButton.isEnabled = true
+                    signInLoader.visibility = View.GONE
+                    startActivity(Intent(this, HomeActivity::class.java))
+                    finish()
+                },
+                onError = { error ->
+                    submitButton.isEnabled = true
+                    signInLoader.visibility = View.GONE
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                }
+            )
         }
 
         saveButton.setOnClickListener {
-            Toast.makeText(this, getString(R.string.sign_up_saved_message), Toast.LENGTH_SHORT).show()
+            val firstName = signUpFirstNameInput.text?.toString()?.trim().orEmpty()
+            val lastName = signUpLastNameInput.text?.toString()?.trim().orEmpty()
+            val mobile = signUpMobileInput.text?.toString()?.trim().orEmpty()
+            val email = signUpEmailInput.text?.toString()?.trim().orEmpty()
+            val password = signUpPasswordInput.text?.toString()?.trim().orEmpty()
+
+            when {
+                firstName.isBlank() || lastName.isBlank() || mobile.isBlank() || email.isBlank() || password.isBlank() -> {
+                    Toast.makeText(this, getString(R.string.enter_all_sign_up_fields), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                mobile.length != 10 -> {
+                    Toast.makeText(this, getString(R.string.invalid_mobile_number), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                    Toast.makeText(this, getString(R.string.invalid_email), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                password.length < 6 -> {
+                    Toast.makeText(this, getString(R.string.password_min_length), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
+
+            saveButton.isEnabled = false
+            signUpLoader.visibility = View.VISIBLE
+            FirebaseRepository.signUp(
+                firstName = firstName,
+                lastName = lastName,
+                mobileNumber = mobile,
+                email = email,
+                password = password,
+                onSuccess = {
+                    saveButton.isEnabled = true
+                    signUpLoader.visibility = View.GONE
+                    Toast.makeText(this, getString(R.string.sign_up_saved_message), Toast.LENGTH_SHORT).show()
+                    signUpFirstNameInput.text = null
+                    signUpLastNameInput.text = null
+                    signUpMobileInput.text = null
+                    signUpEmailInput.text = null
+                    signUpPasswordInput.text = null
+                    tabLayout.getTabAt(0)?.select()
+                },
+                onError = { error ->
+                    saveButton.isEnabled = true
+                    signUpLoader.visibility = View.GONE
+                    val message = when (error) {
+                        "Mobile number already registered" -> getString(R.string.mobile_already_registered)
+                        else -> error
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 }

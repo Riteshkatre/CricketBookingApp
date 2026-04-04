@@ -12,7 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 class SplashActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val navigateToMain = Runnable {
-        val destination = if (SessionManager.isSignedIn(this)) {
+        val destination = if (FirebaseRepository.isUserSignedIn()) {
             HomeActivity::class.java
         } else {
             MainActivity::class.java
