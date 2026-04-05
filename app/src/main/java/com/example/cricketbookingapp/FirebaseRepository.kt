@@ -112,6 +112,12 @@ object FirebaseRepository {
                     val endDateTimeMillis = document.getLong("endDateTimeMillis") ?: return@mapNotNull null
                     val amount = document.getString("amount").orEmpty()
                     val createdByName = document.getString("createdByName").orEmpty()
+                    val customerName = document.getString("customerName").orEmpty()
+                    val customerPhone = document.getString("customerPhone").orEmpty()
+                    val pricePerHour = document.getString("pricePerHour").orEmpty()
+                    val advancePayment = document.getString("advancePayment").orEmpty()
+                    val discount = document.getString("discount").orEmpty()
+                    val boxName = document.getString("boxName").orEmpty().ifBlank { "Box 1" }
 
                     BookingItem(
                         id = document.id,
@@ -119,7 +125,13 @@ object FirebaseRepository {
                         startDateTimeMillis = startDateTimeMillis,
                         endDateTimeMillis = endDateTimeMillis,
                         amount = amount,
-                        createdByName = createdByName
+                        createdByName = createdByName,
+                        customerName = customerName,
+                        customerPhone = customerPhone,
+                        pricePerHour = pricePerHour,
+                        advancePayment = advancePayment,
+                        discount = discount,
+                        boxName = boxName
                     )
                 }.orEmpty()
 
@@ -129,8 +141,14 @@ object FirebaseRepository {
 
     fun addBooking(
         bookingName: String,
+        customerName: String,
+        customerPhone: String,
+        boxName: String,
         startDateTimeMillis: Long,
         endDateTimeMillis: Long,
+        pricePerHour: String,
+        advancePayment: String,
+        discount: String,
         amount: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
@@ -145,8 +163,14 @@ object FirebaseRepository {
             onSuccess = { profile ->
                 val payload = hashMapOf(
                     "bookingName" to bookingName,
+                    "customerName" to customerName,
+                    "customerPhone" to customerPhone,
+                    "boxName" to boxName,
                     "startDateTimeMillis" to startDateTimeMillis,
                     "endDateTimeMillis" to endDateTimeMillis,
+                    "pricePerHour" to pricePerHour,
+                    "advancePayment" to advancePayment,
+                    "discount" to discount,
                     "amount" to amount,
                     "createdByUid" to uid,
                     "createdByName" to profile.fullName,

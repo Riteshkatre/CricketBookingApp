@@ -1,6 +1,7 @@
 package com.example.cricketbookingapp
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Paint
@@ -12,16 +13,20 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.firestore.ListenerRegistration
 import java.io.File
 import java.io.FileOutputStream
@@ -33,20 +38,77 @@ import java.util.Locale
 
 class HomeActivity : AppCompatActivity() {
     private var allBookings: List<BookingItem> = emptyList()
-    private lateinit var bookingAdapter: BookingAdapter
-    private var visibleBookings: List<BookingItem> = emptyList()
-    private var selectedSingleDate: String? = null
-    private var selectedRangeStartDate: String? = null
-    private var selectedRangeEndDate: String? = null
-    private var searchQuery: String = ""
-    private val bookingDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    private var visibleRevenueBookings: List<BookingItem> = emptyList()
+    private var showAllUpcomingBookings = false
+    private var bookingListener: ListenerRegistration? = null
+
+    private lateinit var revenueAdapter: BookingAdapter
+    private lateinit var todayAdapter: DashboardBookingAdapter
+    private lateinit var upcomingAdapter: DashboardBookingAdapter
+    private lateinit var availabilityDateAdapter: AvailabilityDateAdapter
+    private lateinit var availabilitySlotAdapter: AvailabilitySlotAdapter
+
+    private lateinit var homeSection: View
+    private lateinit var availabilitySection: View
+    private lateinit var bookingSection: View
+    private lateinit var revenueSection: View
+
     private lateinit var dateFilterButton: MaterialButton
     private lateinit var clearDateFilterButton: AppCompatImageButton
-    private lateinit var userNameText: TextView
-    private lateinit var profileInitialsText: TextView
     private lateinit var noDataText: TextView
-    private var bookingListener: ListenerRegistration? = null
-    private var currentUserDisplayName: String = ""
+    private lateinit var revenueSubTitleText: TextView
+    private lateinit var todayBookingCountText: TextView
+    private lateinit var lastRevenueText: TextView
+    private lateinit var todayDateText: TextView
+    private lateinit var noTodayBookingsText: TextView
+    private lateinit var allBookingsButtonText: TextView
+    private lateinit var selectedAvailabilityDateText: TextView
+
+    private lateinit var bookingNameInput: TextInputEditText
+    private lateinit var customerNameInput: TextInputEditText
+    private lateinit var customerPhoneInput: TextInputEditText
+    private lateinit var startDateTimeInput: TextInputEditText
+    private lateinit var endDateTimeInput: TextInputEditText
+    private lateinit var pricePerHourInput: TextInputEditText
+    private lateinit var advancePaymentInput: TextInputEditText
+    private lateinit var discountInput: TextInputEditText
+    private lateinit var submitBookingButton: MaterialButton
+    private lateinit var addBookingLoader: CircularProgressIndicator
+
+    private lateinit var bookingNameLayout: TextInputLayout
+    private lateinit var customerNameLayout: TextInputLayout
+    private lateinit var customerPhoneLayout: TextInputLayout
+    private lateinit var startDateTimeLayout: TextInputLayout
+    private lateinit var endDateTimeLayout: TextInputLayout
+    private lateinit var pricePerHourLayout: TextInputLayout
+    private lateinit var advancePaymentLayout: TextInputLayout
+    private lateinit var discountLayout: TextInputLayout
+
+    private lateinit var summaryDateText: TextView
+    private lateinit var summaryCustomerText: TextView
+    private lateinit var summaryBoxText: TextView
+    private lateinit var summarySubtotalText: TextView
+    private lateinit var summaryAdvanceText: TextView
+    private lateinit var summaryDiscountText: TextView
+    private lateinit var summaryTotalText: TextView
+
+    private lateinit var box1Button: MaterialButton
+    private lateinit var box2Button: MaterialButton
+    private lateinit var formBox1Button: MaterialButton
+    private lateinit var formBox2Button: MaterialButton
+
+    private var selectedRevenueSingleDate: String? = null
+    private var selectedRevenueRangeStartDate: String? = null
+    private var selectedRevenueRangeEndDate: String? = null
+    private var selectedAvailabilityDateMillis: Long = startOfDay(System.currentTimeMillis())
+    private var selectedAvailabilityBoxName = "Box 1"
+    private var selectedFormBoxName = "Box 1"
+
+    private val bookingDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    private val longDateFormatter = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+    private val shortDateFormatter = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
+    private val dateTimeFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+    private val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,79 +117,29 @@ class HomeActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.homeRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
             insets
         }
 
-        val recyclerView = findViewById<RecyclerView>(R.id.bookingRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        bookingAdapter = BookingAdapter(emptyList())
-        recyclerView.adapter = bookingAdapter
-
-        userNameText = findViewById(R.id.userNameText)
-        profileInitialsText = findViewById(R.id.profileInitialsText)
-        noDataText = findViewById(R.id.noDataText)
-        dateFilterButton = findViewById(R.id.dateFilterButton)
-        clearDateFilterButton = findViewById(R.id.clearDateFilterButton)
-        val printPdfButton = findViewById<MaterialButton>(R.id.printPdfButton)
-        val bookingSearchView = findViewById<SearchView>(R.id.bookingSearchView)
-
-        dateFilterButton.setOnClickListener {
-            openDateFilterChoiceDialog(dateFilterButton, clearDateFilterButton)
-        }
-
-        clearDateFilterButton.setOnClickListener {
-            selectedSingleDate = null
-            selectedRangeStartDate = null
-            selectedRangeEndDate = null
-            dateFilterButton.text = getString(R.string.filter_date_label)
-            clearDateFilterButton.visibility = View.GONE
-            applyFilters()
-        }
-
-        printPdfButton.setOnClickListener {
-            exportBookingsToPdf()
-        }
-
-        bookingSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                searchQuery = query.orEmpty()
-                applyFilters()
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                searchQuery = newText.orEmpty()
-                applyFilters()
-                return true
-            }
-        })
-
-        findViewById<FloatingActionButton>(R.id.addBookingButton).setOnClickListener {
-            startActivity(Intent(this, AddBookingActivity::class.java))
-        }
-
-        FirebaseRepository.loadCurrentUserProfile(
-            onSuccess = { profile ->
-                currentUserDisplayName = profile.fullName.ifBlank { getString(R.string.default_user_name) }
-                userNameText.text = currentUserDisplayName
-                profileInitialsText.text = profile.initials
-            },
-            onError = {
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-            }
-        )
+        bindViews()
+        setupAdapters()
+        setupBottomNavigation()
+        setupRevenueControls()
+        setupAvailabilityControls()
+        setupBookingForm()
+        updateSectionVisibility(R.id.menu_home)
+        updateHomeHeader()
     }
 
     override fun onStart() {
         super.onStart()
         bookingListener = FirebaseRepository.listenToBookings(
             onUpdate = { bookings ->
-                allBookings = bookings
-                applyFilters()
+                allBookings = bookings.sortedBy { it.startDateTimeMillis }
+                refreshAllSections()
             },
-            onError = {
-                Toast.makeText(this, getString(R.string.loading_bookings_failed), Toast.LENGTH_SHORT).show()
+            onError = { error ->
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -138,10 +150,405 @@ class HomeActivity : AppCompatActivity() {
         super.onStop()
     }
 
-    private fun openDateFilterChoiceDialog(
-        dateFilterButton: MaterialButton,
-        clearDateFilterButton: AppCompatImageButton
-    ) {
+    private fun bindViews() {
+        homeSection = findViewById(R.id.homeSection)
+        availabilitySection = findViewById(R.id.availabilitySection)
+        bookingSection = findViewById(R.id.bookingSection)
+        revenueSection = findViewById(R.id.revenueSection)
+
+        dateFilterButton = findViewById(R.id.dateFilterButton)
+        clearDateFilterButton = findViewById(R.id.clearDateFilterButton)
+        noDataText = findViewById(R.id.noDataText)
+        revenueSubTitleText = findViewById(R.id.revenueSubTitleText)
+        todayBookingCountText = findViewById(R.id.todayBookingCountText)
+        lastRevenueText = findViewById(R.id.lastRevenueText)
+        todayDateText = findViewById(R.id.todayDateText)
+        noTodayBookingsText = findViewById(R.id.noTodayBookingsText)
+        allBookingsButtonText = findViewById(R.id.allBookingsButtonText)
+        selectedAvailabilityDateText = findViewById(R.id.selectedAvailabilityDateText)
+
+        bookingNameInput = findViewById(R.id.bookingNameInput)
+        customerNameInput = findViewById(R.id.customerNameInput)
+        customerPhoneInput = findViewById(R.id.customerPhoneInput)
+        startDateTimeInput = findViewById(R.id.startDateTimeInput)
+        endDateTimeInput = findViewById(R.id.endDateTimeInput)
+        pricePerHourInput = findViewById(R.id.pricePerHourInput)
+        advancePaymentInput = findViewById(R.id.advancePaymentInput)
+        discountInput = findViewById(R.id.discountInput)
+        submitBookingButton = findViewById(R.id.submitBookingButton)
+        addBookingLoader = findViewById(R.id.addBookingLoader)
+
+        bookingNameLayout = findViewById(R.id.bookingNameLayout)
+        customerNameLayout = findViewById(R.id.customerNameLayout)
+        customerPhoneLayout = findViewById(R.id.customerPhoneLayout)
+        startDateTimeLayout = findViewById(R.id.startDateTimeLayout)
+        endDateTimeLayout = findViewById(R.id.endDateTimeLayout)
+        pricePerHourLayout = findViewById(R.id.pricePerHourLayout)
+        advancePaymentLayout = findViewById(R.id.advancePaymentLayout)
+        discountLayout = findViewById(R.id.discountLayout)
+
+        summaryDateText = findViewById(R.id.summaryDateText)
+        summaryCustomerText = findViewById(R.id.summaryCustomerText)
+        summaryBoxText = findViewById(R.id.summaryBoxText)
+        summarySubtotalText = findViewById(R.id.summarySubtotalText)
+        summaryAdvanceText = findViewById(R.id.summaryAdvanceText)
+        summaryDiscountText = findViewById(R.id.summaryDiscountText)
+        summaryTotalText = findViewById(R.id.summaryTotalText)
+
+        box1Button = findViewById(R.id.box1Button)
+        box2Button = findViewById(R.id.box2Button)
+        formBox1Button = findViewById(R.id.formBox1Button)
+        formBox2Button = findViewById(R.id.formBox2Button)
+    }
+
+    private fun setupAdapters() {
+        revenueAdapter = BookingAdapter(emptyList()) { openBookingDetails(it) }
+        todayAdapter = DashboardBookingAdapter(emptyList()) { openBookingDetails(it) }
+        upcomingAdapter = DashboardBookingAdapter(emptyList()) { openBookingDetails(it) }
+        availabilityDateAdapter = AvailabilityDateAdapter(emptyList()) { dateMillis ->
+            selectedAvailabilityDateMillis = startOfDay(dateMillis)
+            renderAvailability()
+        }
+        availabilitySlotAdapter = AvailabilitySlotAdapter(emptyList())
+
+        findViewById<RecyclerView>(R.id.bookingRecyclerView).apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity)
+            adapter = revenueAdapter
+        }
+        findViewById<RecyclerView>(R.id.todayBookingsRecyclerView).apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity)
+            adapter = todayAdapter
+        }
+        findViewById<RecyclerView>(R.id.upcomingBookingsRecyclerView).apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity)
+            adapter = upcomingAdapter
+        }
+        findViewById<RecyclerView>(R.id.dateSelectorRecyclerView).apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = availabilityDateAdapter
+        }
+        findViewById<RecyclerView>(R.id.availabilitySlotsRecyclerView).apply {
+            layoutManager = GridLayoutManager(this@HomeActivity, 2)
+            adapter = availabilitySlotAdapter
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        findViewById<BottomNavigationView>(R.id.bottomNavigation).apply {
+            selectedItemId = R.id.menu_home
+            setOnItemSelectedListener { item ->
+                updateSectionVisibility(item.itemId)
+                true
+            }
+        }
+    }
+
+    private fun updateSectionVisibility(menuId: Int) {
+        homeSection.visibility = if (menuId == R.id.menu_home) View.VISIBLE else View.GONE
+        availabilitySection.visibility = if (menuId == R.id.menu_availability) View.VISIBLE else View.GONE
+        bookingSection.visibility = if (menuId == R.id.menu_booking) View.VISIBLE else View.GONE
+        revenueSection.visibility = if (menuId == R.id.menu_revenue) View.VISIBLE else View.GONE
+    }
+
+    private fun setupRevenueControls() {
+        dateFilterButton.text = getString(R.string.last_days_bookings_default)
+        dateFilterButton.setOnClickListener { openDateFilterChoiceDialog() }
+        clearDateFilterButton.setOnClickListener {
+            selectedRevenueSingleDate = null
+            selectedRevenueRangeStartDate = null
+            selectedRevenueRangeEndDate = null
+            dateFilterButton.text = getString(R.string.last_days_bookings_default)
+            clearDateFilterButton.visibility = View.GONE
+            renderRevenue()
+        }
+        findViewById<MaterialButton>(R.id.printPdfButton).setOnClickListener {
+            exportBookingsToPdf()
+        }
+    }
+
+    private fun setupAvailabilityControls() {
+        box1Button.setOnClickListener {
+            selectedAvailabilityBoxName = "Box 1"
+            updateAvailabilityBoxButtons()
+            renderAvailability()
+        }
+        box2Button.setOnClickListener {
+            selectedAvailabilityBoxName = "Box 2"
+            updateAvailabilityBoxButtons()
+            renderAvailability()
+        }
+        updateAvailabilityBoxButtons()
+        availabilityDateAdapter.updateDates(buildDateOptions(), selectedAvailabilityDateMillis)
+    }
+
+    private fun setupBookingForm() {
+        val updateSummary = {
+            val startMillis = startDateTimeInput.tag as? Long
+            val endMillis = endDateTimeInput.tag as? Long
+            val customerName = customerNameInput.text?.toString()?.trim().orEmpty()
+            val customerPhone = customerPhoneInput.text?.toString()?.trim().orEmpty()
+            val pricePerHour = pricePerHourInput.text?.toString()?.trim().orEmpty().toDoubleOrNull() ?: 0.0
+            val advancePayment = advancePaymentInput.text?.toString()?.trim().orEmpty().toDoubleOrNull() ?: 0.0
+            val discount = discountInput.text?.toString()?.trim().orEmpty().toDoubleOrNull() ?: 0.0
+            val totalHours = if (startMillis != null && endMillis != null && endMillis > startMillis) {
+                (endMillis - startMillis) / (60.0 * 60.0 * 1000.0)
+            } else {
+                0.0
+            }
+            val subTotal = pricePerHour * totalHours
+            val finalTotal = (subTotal - discount).coerceAtLeast(0.0)
+
+            summaryDateText.text = if (startMillis != null && endMillis != null) {
+                "${bookingDateFormatter.format(Date(startMillis))}\n${timeFormatter.format(Date(startMillis))} - ${timeFormatter.format(Date(endMillis))}"
+            } else {
+                getString(R.string.summary_empty_date)
+            }
+            summaryCustomerText.text = listOf(
+                customerName.ifBlank { getString(R.string.summary_empty_customer) },
+                customerPhone.ifBlank { getString(R.string.summary_empty_phone) }
+            ).joinToString("\n")
+            summaryBoxText.text = selectedFormBoxName
+            summarySubtotalText.text = getString(R.string.currency_value, formatAmount(subTotal))
+            summaryAdvanceText.text = getString(R.string.currency_value, formatAmount(advancePayment))
+            summaryDiscountText.text = getString(R.string.currency_value, formatAmount(discount))
+            summaryTotalText.text = getString(R.string.currency_value, formatAmount(finalTotal))
+        }
+
+        configureDateTimeField(startDateTimeInput, updateSummary)
+        configureDateTimeField(endDateTimeInput, updateSummary)
+
+        listOf(
+            bookingNameInput,
+            customerNameInput,
+            customerPhoneInput,
+            pricePerHourInput,
+            advancePaymentInput,
+            discountInput
+        ).forEach { input -> input.doAfterTextChanged { updateSummary() } }
+
+        formBox1Button.setOnClickListener {
+            selectedFormBoxName = "Box 1"
+            updateFormBoxButtons()
+            updateSummary()
+        }
+        formBox2Button.setOnClickListener {
+            selectedFormBoxName = "Box 2"
+            updateFormBoxButtons()
+            updateSummary()
+        }
+        updateFormBoxButtons()
+        updateSummary()
+
+        submitBookingButton.setOnClickListener { submitBooking() }
+    }
+
+    private fun submitBooking() {
+        listOf(
+            bookingNameLayout,
+            customerNameLayout,
+            customerPhoneLayout,
+            startDateTimeLayout,
+            endDateTimeLayout,
+            pricePerHourLayout,
+            advancePaymentLayout,
+            discountLayout
+        ).forEach { it.error = null }
+
+        val bookingName = bookingNameInput.text?.toString()?.trim().orEmpty()
+        val customerName = customerNameInput.text?.toString()?.trim().orEmpty()
+        val customerPhone = customerPhoneInput.text?.toString()?.trim().orEmpty()
+        val pricePerHourText = pricePerHourInput.text?.toString()?.trim().orEmpty()
+        val advancePaymentText = advancePaymentInput.text?.toString()?.trim().orEmpty().ifBlank { "0" }
+        val discountText = discountInput.text?.toString()?.trim().orEmpty().ifBlank { "0" }
+        val startMillis = startDateTimeInput.tag as? Long
+        val endMillis = endDateTimeInput.tag as? Long
+
+        when {
+            bookingName.isBlank() -> bookingNameLayout.error = getString(R.string.booking_name_required)
+            customerName.isBlank() -> customerNameLayout.error = getString(R.string.customer_name_required)
+            customerPhone.length != 10 || customerPhone.any { !it.isDigit() } ->
+                customerPhoneLayout.error = getString(R.string.invalid_mobile_number)
+            startMillis == null -> startDateTimeLayout.error = getString(R.string.start_date_required)
+            endMillis == null -> endDateTimeLayout.error = getString(R.string.end_date_required)
+            pricePerHourText.toDoubleOrNull() == null ->
+                pricePerHourLayout.error = getString(R.string.invalid_booking_amount)
+            advancePaymentText.toDoubleOrNull() == null ->
+                advancePaymentLayout.error = getString(R.string.invalid_booking_amount)
+            discountText.toDoubleOrNull() == null ->
+                discountLayout.error = getString(R.string.invalid_booking_amount)
+            startMillis != null && endMillis != null && endMillis <= startMillis ->
+                endDateTimeLayout.error = getString(R.string.end_must_be_after_start)
+        }
+
+        if (listOf(
+                bookingNameLayout,
+                customerNameLayout,
+                customerPhoneLayout,
+                startDateTimeLayout,
+                endDateTimeLayout,
+                pricePerHourLayout,
+                advancePaymentLayout,
+                discountLayout
+            ).any { it.error != null }
+        ) return
+
+        val confirmedStartMillis = startMillis ?: return
+        val confirmedEndMillis = endMillis ?: return
+        val totalHours = (confirmedEndMillis - confirmedStartMillis) / (60.0 * 60.0 * 1000.0)
+        val finalAmount = ((pricePerHourText.toDoubleOrNull() ?: 0.0) * totalHours -
+            (discountText.toDoubleOrNull() ?: 0.0)).coerceAtLeast(0.0)
+
+        submitBookingButton.isEnabled = false
+        addBookingLoader.visibility = View.VISIBLE
+
+        FirebaseRepository.addBooking(
+            bookingName = bookingName,
+            customerName = customerName,
+            customerPhone = customerPhone,
+            boxName = selectedFormBoxName,
+            startDateTimeMillis = confirmedStartMillis,
+            endDateTimeMillis = confirmedEndMillis,
+            pricePerHour = pricePerHourText,
+            advancePayment = advancePaymentText,
+            discount = discountText,
+            amount = formatAmount(finalAmount),
+            onSuccess = {
+                submitBookingButton.isEnabled = true
+                addBookingLoader.visibility = View.GONE
+                Toast.makeText(this, getString(R.string.booking_added_message), Toast.LENGTH_SHORT).show()
+                clearBookingForm()
+            },
+            onError = { error ->
+                submitBookingButton.isEnabled = true
+                addBookingLoader.visibility = View.GONE
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    private fun clearBookingForm() {
+        bookingNameInput.text = null
+        customerNameInput.text = null
+        customerPhoneInput.text = null
+        startDateTimeInput.text = null
+        endDateTimeInput.text = null
+        pricePerHourInput.text = null
+        advancePaymentInput.text = null
+        discountInput.text = null
+        startDateTimeInput.tag = null
+        endDateTimeInput.tag = null
+        selectedFormBoxName = "Box 1"
+        updateFormBoxButtons()
+        summaryDateText.text = getString(R.string.summary_empty_date)
+        summaryCustomerText.text = "${getString(R.string.summary_empty_customer)}\n${getString(R.string.summary_empty_phone)}"
+        summaryBoxText.text = selectedFormBoxName
+        summarySubtotalText.text = getString(R.string.currency_zero)
+        summaryAdvanceText.text = getString(R.string.currency_zero)
+        summaryDiscountText.text = getString(R.string.currency_zero)
+        summaryTotalText.text = getString(R.string.currency_zero)
+    }
+
+    private fun refreshAllSections() {
+        renderHome()
+        renderAvailability()
+        renderRevenue()
+    }
+
+    private fun renderHome() {
+        val todayStart = startOfDay(System.currentTimeMillis())
+        val tomorrowStart = todayStart + ONE_DAY_MILLIS
+        val sevenDaysAgo = todayStart - (6 * ONE_DAY_MILLIS)
+
+        val todayBookings = allBookings.filter { it.startDateTimeMillis in todayStart until tomorrowStart }
+        val upcomingBookings = allBookings.filter { it.startDateTimeMillis >= tomorrowStart }
+        val last7DaysRevenue = allBookings
+            .filter { it.startDateTimeMillis in sevenDaysAgo until tomorrowStart }
+            .sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+
+        todayBookingCountText.text = todayBookings.size.toString()
+        lastRevenueText.text = getString(R.string.currency_value, formatAmount(last7DaysRevenue))
+        todayDateText.text = shortDateFormatter.format(Date(todayStart))
+        todayAdapter.updateItems(todayBookings)
+        noTodayBookingsText.visibility = if (todayBookings.isEmpty()) View.VISIBLE else View.GONE
+
+        val upcomingDisplay = if (showAllUpcomingBookings) upcomingBookings else upcomingBookings.take(3)
+        upcomingAdapter.updateItems(upcomingDisplay)
+        allBookingsButtonText.text = if (showAllUpcomingBookings) getString(R.string.show_less) else getString(R.string.all_bookings)
+        allBookingsButtonText.visibility = if (upcomingBookings.size > 3) View.VISIBLE else View.GONE
+        allBookingsButtonText.setOnClickListener {
+            showAllUpcomingBookings = !showAllUpcomingBookings
+            renderHome()
+        }
+    }
+
+    private fun renderAvailability() {
+        availabilityDateAdapter.updateDates(buildDateOptions(), selectedAvailabilityDateMillis)
+        selectedAvailabilityDateText.text = longDateFormatter.format(Date(selectedAvailabilityDateMillis))
+
+        val slots = mutableListOf<AvailabilitySlotItem>()
+        val startCalendar = Calendar.getInstance().apply {
+            timeInMillis = selectedAvailabilityDateMillis
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        repeat(12) {
+            val slotStart = startCalendar.timeInMillis
+            val slotEnd = slotStart + ONE_HOUR_MILLIS
+            val timeLabel = "${timeFormatter.format(Date(slotStart))} - ${timeFormatter.format(Date(slotEnd))}"
+            val isBooked = allBookings.any { booking ->
+                booking.boxName.equals(selectedAvailabilityBoxName, ignoreCase = true) &&
+                    isSameDay(booking.startDateTimeMillis, selectedAvailabilityDateMillis) &&
+                    booking.startDateTimeMillis < slotEnd &&
+                    booking.endDateTimeMillis > slotStart
+            }
+            slots += AvailabilitySlotItem(
+                timeLabel = timeLabel,
+                statusLabel = getString(if (isBooked) R.string.booked else R.string.available),
+                isBooked = isBooked
+            )
+            startCalendar.timeInMillis = slotEnd
+        }
+
+        availabilitySlotAdapter.updateItems(slots)
+    }
+
+    private fun renderRevenue() {
+        val filtered = getRevenueBookings()
+        visibleRevenueBookings = filtered
+        revenueAdapter.updateBookings(filtered)
+        noDataText.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        revenueSubTitleText.text = if (selectedRevenueSingleDate == null &&
+            selectedRevenueRangeStartDate == null &&
+            selectedRevenueRangeEndDate == null
+        ) {
+            getString(R.string.last_days_bookings_default)
+        } else {
+            getString(R.string.last_days_bookings, filtered.size)
+        }
+    }
+
+    private fun getRevenueBookings(): List<BookingItem> {
+        if (selectedRevenueSingleDate == null &&
+            selectedRevenueRangeStartDate == null &&
+            selectedRevenueRangeEndDate == null
+        ) {
+            val todayStart = startOfDay(System.currentTimeMillis())
+            val sevenDaysAgo = todayStart - (6 * ONE_DAY_MILLIS)
+            val tomorrowStart = todayStart + ONE_DAY_MILLIS
+            return allBookings.filter { it.startDateTimeMillis in sevenDaysAgo until tomorrowStart }
+        }
+
+        return allBookings.filter { booking -> matchesRevenueDate(booking.date) }
+    }
+
+    private fun openBookingDetails(booking: BookingItem) {
+        startActivity(BookingDetailsActivity.createIntent(this, booking))
+    }
+
+    private fun openDateFilterChoiceDialog() {
         val options = arrayOf(
             getString(R.string.filter_option_single_date),
             getString(R.string.filter_option_date_range)
@@ -150,28 +557,25 @@ class HomeActivity : AppCompatActivity() {
             .setTitle(R.string.filter_date_dialog_title)
             .setItems(options) { _: DialogInterface, which: Int ->
                 when (which) {
-                    0 -> openSingleDateFilterDialog(dateFilterButton, clearDateFilterButton)
-                    1 -> openRangeStartDialog(dateFilterButton, clearDateFilterButton)
+                    0 -> openSingleDateFilterDialog()
+                    1 -> openRangeStartDialog()
                 }
             }
             .show()
     }
 
-    private fun openSingleDateFilterDialog(
-        dateFilterButton: MaterialButton,
-        clearDateFilterButton: AppCompatImageButton
-    ) {
+    private fun openSingleDateFilterDialog() {
         val calendar = Calendar.getInstance()
         DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
                 calendar.set(year, month, dayOfMonth)
-                selectedSingleDate = bookingDateFormatter.format(calendar.time)
-                selectedRangeStartDate = null
-                selectedRangeEndDate = null
-                dateFilterButton.text = selectedSingleDate
+                selectedRevenueSingleDate = bookingDateFormatter.format(calendar.time)
+                selectedRevenueRangeStartDate = null
+                selectedRevenueRangeEndDate = null
+                dateFilterButton.text = selectedRevenueSingleDate
                 clearDateFilterButton.visibility = View.VISIBLE
-                applyFilters()
+                renderRevenue()
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -179,17 +583,13 @@ class HomeActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun openRangeStartDialog(
-        dateFilterButton: MaterialButton,
-        clearDateFilterButton: AppCompatImageButton
-    ) {
+    private fun openRangeStartDialog() {
         val startCalendar = Calendar.getInstance()
         DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
                 startCalendar.set(year, month, dayOfMonth)
-                val startDate = bookingDateFormatter.format(startCalendar.time)
-                openRangeEndDialog(startDate, dateFilterButton, clearDateFilterButton)
+                openRangeEndDialog(bookingDateFormatter.format(startCalendar.time))
             },
             startCalendar.get(Calendar.YEAR),
             startCalendar.get(Calendar.MONTH),
@@ -197,28 +597,19 @@ class HomeActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun openRangeEndDialog(
-        startDate: String,
-        dateFilterButton: MaterialButton,
-        clearDateFilterButton: AppCompatImageButton
-    ) {
+    private fun openRangeEndDialog(startDate: String) {
         val endCalendar = Calendar.getInstance()
         DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
                 endCalendar.set(year, month, dayOfMonth)
-                val endDate = bookingDateFormatter.format(endCalendar.time)
-                val orderedDates = orderDates(startDate, endDate)
-                selectedSingleDate = null
-                selectedRangeStartDate = orderedDates.first
-                selectedRangeEndDate = orderedDates.second
-                dateFilterButton.text = getString(
-                    R.string.filter_range_value,
-                    selectedRangeStartDate,
-                    selectedRangeEndDate
-                )
+                val ordered = orderDates(startDate, bookingDateFormatter.format(endCalendar.time))
+                selectedRevenueSingleDate = null
+                selectedRevenueRangeStartDate = ordered.first
+                selectedRevenueRangeEndDate = ordered.second
+                dateFilterButton.text = getString(R.string.filter_range_value, ordered.first, ordered.second)
                 clearDateFilterButton.visibility = View.VISIBLE
-                applyFilters()
+                renderRevenue()
             },
             endCalendar.get(Calendar.YEAR),
             endCalendar.get(Calendar.MONTH),
@@ -226,24 +617,21 @@ class HomeActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun applyFilters() {
-        val filteredBookings = allBookings.filter { booking ->
-            val matchesDate = matchesSelectedDate(booking.date)
-            val matchesSearch = searchQuery.isBlank() ||
-                booking.name.contains(searchQuery, ignoreCase = true) ||
-                booking.amount.contains(searchQuery, ignoreCase = true) ||
-                booking.time.contains(searchQuery, ignoreCase = true)
-            matchesDate && matchesSearch
+    private fun matchesRevenueDate(bookingDate: String): Boolean {
+        selectedRevenueSingleDate?.let { return bookingDate == it }
+        val startDate = selectedRevenueRangeStartDate
+        val endDate = selectedRevenueRangeEndDate
+        if (startDate != null && endDate != null) {
+            val booking = parseBookingDate(bookingDate) ?: return false
+            val start = parseBookingDate(startDate) ?: return false
+            val end = parseBookingDate(endDate) ?: return false
+            return !booking.before(start) && !booking.after(end)
         }
-        visibleBookings = filteredBookings
-        bookingAdapter.updateBookings(filteredBookings)
-        noDataText.visibility = if (filteredBookings.isEmpty()) View.VISIBLE else View.GONE
+        return true
     }
 
     private fun exportBookingsToPdf() {
-        val bookingsForPdf = getBookingsForPdf()
-
-        if (bookingsForPdf.isEmpty()) {
+        if (visibleRevenueBookings.isEmpty()) {
             Toast.makeText(this, getString(R.string.no_bookings_to_print), Toast.LENGTH_SHORT).show()
             return
         }
@@ -258,11 +646,6 @@ class HomeActivity : AppCompatActivity() {
             textSize = 14f
             color = android.graphics.Color.DKGRAY
         }
-        val amountPaint = Paint().apply {
-            textSize = 14f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            color = android.graphics.Color.BLACK
-        }
 
         val pageWidth = 595
         val pageHeight = 842
@@ -275,14 +658,11 @@ class HomeActivity : AppCompatActivity() {
         fun drawHeader() {
             canvas.drawText(getString(R.string.pdf_title), 40f, y.toFloat(), titlePaint)
             y += 30
-            canvas.drawText(currentUserDisplayName.ifBlank { getString(R.string.default_user_name) }, 40f, y.toFloat(), bodyPaint)
-            y += 30
         }
 
         drawHeader()
-
-        bookingsForPdf.forEachIndexed { index, booking ->
-            if (y > pageHeight - 120) {
+        visibleRevenueBookings.forEachIndexed { index, booking ->
+            if (y > pageHeight - 140) {
                 pdfDocument.finishPage(page)
                 pageNumber += 1
                 pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
@@ -291,15 +671,13 @@ class HomeActivity : AppCompatActivity() {
                 y = 50
                 drawHeader()
             }
-
-            canvas.drawText("${index + 1}. ${booking.name}", 40f, y.toFloat(), amountPaint)
-            y += 22
-            canvas.drawText("${booking.date}  |  ${booking.time}", 55f, y.toFloat(), bodyPaint)
+            canvas.drawText("${index + 1}. ${booking.name}", 40f, y.toFloat(), bodyPaint)
             y += 20
-            canvas.drawText(booking.amount, 55f, y.toFloat(), bodyPaint)
-            y += 28
+            canvas.drawText("${booking.date} | ${booking.timeRange} | ${booking.boxName}", 50f, y.toFloat(), bodyPaint)
+            y += 20
+            canvas.drawText("${booking.displayCustomerName} | ${booking.displayAmount}", 50f, y.toFloat(), bodyPaint)
+            y += 24
         }
-
         pdfDocument.finishPage(page)
 
         try {
@@ -309,39 +687,80 @@ class HomeActivity : AppCompatActivity() {
             }
             pdfDocument.close()
 
-            val pdfUri = FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                pdfFile
-            )
-            val openPdfIntent = Intent(Intent.ACTION_VIEW).apply {
+            val pdfUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", pdfFile)
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(pdfUri, "application/pdf")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(openPdfIntent, getString(R.string.open_pdf_chooser)))
-        } catch (exception: Exception) {
+            }, getString(R.string.open_pdf_chooser)))
+        } catch (_: Exception) {
             pdfDocument.close()
             Toast.makeText(this, getString(R.string.pdf_generation_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun getBookingsForPdf(): List<BookingItem> {
-        return visibleBookings
+    private fun configureDateTimeField(input: TextInputEditText, onValueChanged: () -> Unit) {
+        input.keyListener = null
+        input.setOnClickListener { openDateThenTimePicker(input, onValueChanged) }
+        input.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) openDateThenTimePicker(input, onValueChanged)
+        }
     }
 
-    private fun matchesSelectedDate(bookingDate: String): Boolean {
-        selectedSingleDate?.let { return bookingDate == it }
+    private fun openDateThenTimePicker(input: TextInputEditText, onValueChanged: () -> Unit) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            this,
+            { _, year, month, dayOfMonth ->
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                TimePickerDialog(
+                    this,
+                    { _, hourOfDay, minute ->
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        calendar.set(Calendar.MINUTE, minute)
+                        input.setText(dateTimeFormatter.format(calendar.time))
+                        input.tag = calendar.timeInMillis
+                        onValueChanged()
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    false
+                ).show()
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
-        val startDate = selectedRangeStartDate
-        val endDate = selectedRangeEndDate
-        if (startDate != null && endDate != null) {
-            val booking = parseBookingDate(bookingDate) ?: return false
-            val start = parseBookingDate(startDate) ?: return false
-            val end = parseBookingDate(endDate) ?: return false
-            return !booking.before(start) && !booking.after(end)
+    private fun updateAvailabilityBoxButtons() {
+        setButtonSelected(box1Button, selectedAvailabilityBoxName == "Box 1")
+        setButtonSelected(box2Button, selectedAvailabilityBoxName == "Box 2")
+    }
+
+    private fun updateFormBoxButtons() {
+        setButtonSelected(formBox1Button, selectedFormBoxName == "Box 1")
+        setButtonSelected(formBox2Button, selectedFormBoxName == "Box 2")
+    }
+
+    private fun setButtonSelected(button: MaterialButton, isSelected: Boolean) {
+        if (isSelected) {
+            button.setBackgroundColor(android.graphics.Color.parseColor("#93F0A8"))
+            button.setTextColor(android.graphics.Color.parseColor("#0B3D2E"))
+        } else {
+            button.setBackgroundColor(android.graphics.Color.WHITE)
+            button.setTextColor(android.graphics.Color.parseColor("#0B3D2E"))
         }
+    }
 
-        return true
+    private fun updateHomeHeader() {
+        todayDateText.text = shortDateFormatter.format(Date())
+    }
+
+    private fun buildDateOptions(): List<Long> {
+        val start = startOfDay(System.currentTimeMillis())
+        return (-1..4).map { offset -> start + (offset * ONE_DAY_MILLIS) }
     }
 
     private fun parseBookingDate(value: String): Date? {
@@ -355,10 +774,31 @@ class HomeActivity : AppCompatActivity() {
     private fun orderDates(firstDate: String, secondDate: String): Pair<String, String> {
         val first = parseBookingDate(firstDate)
         val second = parseBookingDate(secondDate)
-        return if (first != null && second != null && first.after(second)) {
-            secondDate to firstDate
-        } else {
-            firstDate to secondDate
+        return if (first != null && second != null && first.after(second)) secondDate to firstDate
+        else firstDate to secondDate
+    }
+
+    private fun isSameDay(firstMillis: Long, secondMillis: Long): Boolean {
+        return startOfDay(firstMillis) == startOfDay(secondMillis)
+    }
+
+    private fun formatAmount(value: Double): String {
+        return if (value % 1.0 == 0.0) value.toInt().toString()
+        else String.format(Locale.getDefault(), "%.2f", value)
+    }
+
+    companion object {
+        private const val ONE_HOUR_MILLIS = 60L * 60L * 1000L
+        private const val ONE_DAY_MILLIS = 24L * ONE_HOUR_MILLIS
+
+        private fun startOfDay(timeMillis: Long): Long {
+            return Calendar.getInstance().apply {
+                timeInMillis = timeMillis
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
         }
     }
 }

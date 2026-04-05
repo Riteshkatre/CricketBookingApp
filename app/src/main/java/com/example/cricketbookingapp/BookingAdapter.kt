@@ -7,7 +7,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class BookingAdapter(
-    private var bookings: List<BookingItem>
+    private var bookings: List<BookingItem>,
+    private val onBookingClick: (BookingItem) -> Unit
 ) : RecyclerView.Adapter<BookingAdapter.BookingViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookingViewHolder {
@@ -16,7 +17,7 @@ class BookingAdapter(
     }
 
     override fun onBindViewHolder(holder: BookingViewHolder, position: Int) {
-        holder.bind(bookings[position])
+        holder.bind(bookings[position], onBookingClick)
     }
 
     override fun getItemCount(): Int = bookings.size
@@ -27,16 +28,24 @@ class BookingAdapter(
     }
 
     class BookingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val bookingName: TextView = itemView.findViewById(R.id.bookingNameText)
-        private val bookingDate: TextView = itemView.findViewById(R.id.bookingDateText)
+        private val bookingDay: TextView = itemView.findViewById(R.id.bookingDayText)
+        private val bookingMonth: TextView = itemView.findViewById(R.id.bookingMonthText)
         private val bookingTime: TextView = itemView.findViewById(R.id.bookingTimeText)
+        private val bookingName: TextView = itemView.findViewById(R.id.bookingNameText)
+        private val bookingCustomer: TextView = itemView.findViewById(R.id.bookingCustomerText)
+        private val bookingPhone: TextView = itemView.findViewById(R.id.bookingPhoneText)
         private val bookingAmount: TextView = itemView.findViewById(R.id.bookingAmountText)
 
-        fun bind(item: BookingItem) {
+        fun bind(item: BookingItem, onBookingClick: (BookingItem) -> Unit) {
+            val dateParts = item.date.split(" ")
+            bookingDay.text = dateParts.firstOrNull().orEmpty()
+            bookingMonth.text = dateParts.drop(1).joinToString(" ")
+            bookingTime.text = item.timeRange
             bookingName.text = item.name
-            bookingDate.text = item.date
-            bookingTime.text = item.time
-            bookingAmount.text = item.amount
+            bookingCustomer.text = item.displayCustomerName
+            bookingPhone.text = item.displayCustomerPhone
+            bookingAmount.text = item.displayAmount
+            itemView.setOnClickListener { onBookingClick(item) }
         }
     }
 }

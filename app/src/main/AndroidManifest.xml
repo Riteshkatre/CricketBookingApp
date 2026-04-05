@@ -36,6 +36,9 @@
             android:name=".AddBookingActivity"
             android:exported="false" />
         <activity
+            android:name=".BookingDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".HomeActivity"
             android:exported="false" />
         <activity

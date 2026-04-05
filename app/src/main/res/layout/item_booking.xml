@@ -4,11 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="14dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="18dp"
+    app:cardCornerRadius="22dp"
     app:cardElevation="2dp"
-    app:strokeColor="#D6E3DA"
+    app:strokeColor="#DCE9E1"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -16,55 +19,111 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="18dp">
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_booking_date_card"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/bookingDayText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#0B3D2E"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="27" />
+
+            <TextView
+                android:id="@+id/bookingMonthText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:textColor="#587066"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="Dec 2025" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
             android:layout_weight="1"
             android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/bookingNameText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#10261D"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                tools:text="Morning Turf Match" />
-
-            <TextView
-                android:id="@+id/bookingDateText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="#587066"
-                android:textSize="14sp"
-                tools:text="10 Apr 2026" />
 
             <TextView
                 android:id="@+id/bookingTimeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#587066"
+                android:textColor="#5E7368"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="08:00 PM - 10:00 PM" />
+
+            <TextView
+                android:id="@+id/bookingNameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#10261D"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="Test Booking 1" />
+
+            <TextView
+                android:id="@+id/bookingCustomerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#5E7368"
                 android:textSize="14sp"
-                tools:text="07:00 AM" />
+                tools:text="Mohit Kanthariya" />
+
+            <TextView
+                android:id="@+id/bookingPhoneText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#5E7368"
+                android:textSize="13sp"
+                tools:text="+91 9978526458" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/bookingAmountText"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_amount_chip"
-            android:paddingStart="14dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="8dp"
-            android:textColor="#0B3D2E"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="Rs. 1200" />
+            android:layout_height="match_parent"
+            android:gravity="end|center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/bookingAmountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_amount_chip"
+                android:paddingStart="12dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="7dp"
+                android:textColor="#0B3D2E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="Rs. 2400" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/right_chevron"
+                android:textColor="#9AABA2"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
