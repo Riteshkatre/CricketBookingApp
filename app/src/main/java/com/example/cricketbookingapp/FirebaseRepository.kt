@@ -38,38 +38,24 @@ object FirebaseRepository {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        firestore.collection(USERS_COLLECTION)
-            .whereEqualTo("mobileNumber", mobileNumber)
-            .limit(1)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (!snapshot.isEmpty) {
-                    onError("Mobile number already registered")
-                    return@addOnSuccessListener
-                }
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnSuccessListener { result ->
+                val uid = result.user?.uid.orEmpty()
+                val profile = hashMapOf(
+                    "uid" to uid,
+                    "firstName" to firstName,
+                    "lastName" to lastName,
+                    "mobileNumber" to mobileNumber,
+                    "email" to email,
+                    "createdAt" to FieldValue.serverTimestamp()
+                )
 
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnSuccessListener { result ->
-                        val uid = result.user?.uid.orEmpty()
-                        val profile = hashMapOf(
-                            "uid" to uid,
-                            "firstName" to firstName,
-                            "lastName" to lastName,
-                            "mobileNumber" to mobileNumber,
-                            "email" to email,
-                            "createdAt" to FieldValue.serverTimestamp()
-                        )
-
-                        firestore.collection(USERS_COLLECTION)
-                            .document(uid)
-                            .set(profile)
-                            .addOnSuccessListener {
-                                auth.signOut()
-                                onSuccess()
-                            }
-                            .addOnFailureListener { error ->
-                                onError(error.localizedMessage ?: "sign_up_failed")
-                            }
+                firestore.collection(USERS_COLLECTION)
+                    .document(uid)
+                    .set(profile)
+                    .addOnSuccessListener {
+                        auth.signOut()
+                        onSuccess()
                     }
                     .addOnFailureListener { error ->
                         onError(error.localizedMessage ?: "sign_up_failed")
