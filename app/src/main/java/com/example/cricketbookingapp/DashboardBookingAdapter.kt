@@ -29,14 +29,16 @@ class DashboardBookingAdapter(
     }
 
     class DashboardBookingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val dateText: TextView = itemView.findViewById(R.id.dashboardBookingDateText)
         private val timeText: TextView = itemView.findViewById(R.id.dashboardBookingTimeText)
         private val titleText: TextView = itemView.findViewById(R.id.dashboardBookingTitleText)
         private val subtitleText: TextView = itemView.findViewById(R.id.dashboardBookingSubtitleText)
 
         fun bind(item: BookingItem, onBookingClick: (BookingItem) -> Unit) {
+            dateText.text = item.date
             timeText.text = item.timeRange
             titleText.text = item.name
-            subtitleText.text = "${item.displayCustomerName} | ${item.displayCustomerPhone}"
+            subtitleText.text = "${item.displayCustomerName} | ${item.displayCustomerPhone} | ${item.boxName}"
             itemView.setOnClickListener { onBookingClick(item) }
         }
     }

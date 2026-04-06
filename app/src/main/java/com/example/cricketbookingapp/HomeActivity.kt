@@ -58,12 +58,17 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var noDataText: TextView
     private lateinit var revenueSubTitleText: TextView
     private lateinit var todayBookingCountText: TextView
+    private lateinit var todayBookingCaptionText: TextView
     private lateinit var lastRevenueText: TextView
+    private lateinit var lastRevenueCaptionText: TextView
     private lateinit var todayDateText: TextView
     private lateinit var noTodayBookingsText: TextView
     private lateinit var allBookingsButtonText: TextView
     private lateinit var selectedAvailabilityDateText: TextView
     private lateinit var noAvailabilitySlotsText: TextView
+    private lateinit var revenuePeriodSummaryText: TextView
+    private lateinit var revenueBookingCountText: TextView
+    private lateinit var revenueTotalText: TextView
 
     private lateinit var bookingNameInput: TextInputEditText
     private lateinit var customerNameInput: TextInputEditText
@@ -171,12 +176,17 @@ class HomeActivity : AppCompatActivity() {
         noDataText = findViewById(R.id.noDataText)
         revenueSubTitleText = findViewById(R.id.revenueSubTitleText)
         todayBookingCountText = findViewById(R.id.todayBookingCountText)
+        todayBookingCaptionText = findViewById(R.id.todayBookingCaptionText)
         lastRevenueText = findViewById(R.id.lastRevenueText)
+        lastRevenueCaptionText = findViewById(R.id.lastRevenueCaptionText)
         todayDateText = findViewById(R.id.todayDateText)
         noTodayBookingsText = findViewById(R.id.noTodayBookingsText)
         allBookingsButtonText = findViewById(R.id.allBookingsButtonText)
         selectedAvailabilityDateText = findViewById(R.id.selectedAvailabilityDateText)
         noAvailabilitySlotsText = findViewById(R.id.noAvailabilitySlotsText)
+        revenuePeriodSummaryText = findViewById(R.id.revenuePeriodSummaryText)
+        revenueBookingCountText = findViewById(R.id.revenueBookingCountText)
+        revenueTotalText = findViewById(R.id.revenueTotalText)
 
         bookingNameInput = findViewById(R.id.bookingNameInput)
         customerNameInput = findViewById(R.id.customerNameInput)
@@ -500,9 +510,12 @@ class HomeActivity : AppCompatActivity() {
         val last7DaysRevenue = allBookings
             .filter { it.startDateTimeMillis in sevenDaysAgo until tomorrowStart }
             .sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+        val last7DaysBookingsCount = allBookings.count { it.startDateTimeMillis in sevenDaysAgo until tomorrowStart }
 
         todayBookingCountText.text = todayBookings.size.toString()
+        todayBookingCaptionText.text = getString(R.string.today_booking_caption, todayBookings.size)
         lastRevenueText.text = getString(R.string.currency_value, formatAmount(last7DaysRevenue))
+        lastRevenueCaptionText.text = getString(R.string.last_days_booking_count, last7DaysBookingsCount)
         todayDateText.text = shortDateFormatter.format(Date(todayStart))
         todayAdapter.updateItems(todayBookings)
         noTodayBookingsText.visibility = if (todayBookings.isEmpty()) View.VISIBLE else View.GONE
@@ -546,6 +559,11 @@ class HomeActivity : AppCompatActivity() {
         visibleRevenueBookings = filtered
         revenueAdapter.updateBookings(filtered)
         noDataText.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        revenueBookingCountText.text = filtered.size.toString()
+        revenueTotalText.text = getString(
+            R.string.currency_value,
+            formatAmount(filtered.sumOf { it.amount.toDoubleOrNull() ?: 0.0 })
+        )
         revenueSubTitleText.text = if (selectedRevenueSingleDate == null &&
             selectedRevenueRangeStartDate == null &&
             selectedRevenueRangeEndDate == null
@@ -553,6 +571,17 @@ class HomeActivity : AppCompatActivity() {
             getString(R.string.last_days_bookings_default)
         } else {
             getString(R.string.last_days_bookings, filtered.size)
+        }
+        revenuePeriodSummaryText.text = when {
+            selectedRevenueSingleDate != null ->
+                getString(R.string.revenue_period_single, selectedRevenueSingleDate)
+            selectedRevenueRangeStartDate != null && selectedRevenueRangeEndDate != null ->
+                getString(
+                    R.string.revenue_period_range,
+                    selectedRevenueRangeStartDate,
+                    selectedRevenueRangeEndDate
+                )
+            else -> getString(R.string.revenue_period_default)
         }
     }
 
