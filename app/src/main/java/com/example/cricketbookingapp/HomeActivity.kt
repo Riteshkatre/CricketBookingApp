@@ -313,7 +313,7 @@ class HomeActivity : AppCompatActivity() {
             val advancePayment = advancePaymentInput.text?.toString()?.trim().orEmpty().toDoubleOrNull() ?: 0.0
             val discount = discountInput.text?.toString()?.trim().orEmpty().toDoubleOrNull() ?: 0.0
             val totalHours = if (startMillis != null && endMillis != null && endMillis > startMillis) {
-                (endMillis - startMillis) / (60.0 * 60.0 * 1000.0)
+                calculateDurationHours(startMillis, endMillis)
             } else {
                 0.0
             }
@@ -421,7 +421,7 @@ class HomeActivity : AppCompatActivity() {
 
         val confirmedStartMillis = startMillis ?: return
         val confirmedEndMillis = endMillis ?: return
-        val totalHours = (confirmedEndMillis - confirmedStartMillis) / (60.0 * 60.0 * 1000.0)
+        val totalHours = calculateDurationHours(confirmedStartMillis, confirmedEndMillis)
         val finalAmount = ((pricePerHourText.toDoubleOrNull() ?: 0.0) * totalHours -
             (discountText.toDoubleOrNull() ?: 0.0)).coerceAtLeast(0.0)
 
@@ -774,6 +774,8 @@ class HomeActivity : AppCompatActivity() {
                     { _, hourOfDay, minute ->
                         calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                         calendar.set(Calendar.MINUTE, minute)
+                        calendar.set(Calendar.SECOND, 0)
+                        calendar.set(Calendar.MILLISECOND, 0)
                         input.setText(dateTimeFormatter.format(calendar.time))
                         input.tag = calendar.timeInMillis
                         onValueChanged()
@@ -857,6 +859,11 @@ class HomeActivity : AppCompatActivity() {
     private fun formatAmount(value: Double): String {
         return if (value % 1.0 == 0.0) value.toInt().toString()
         else String.format(Locale.getDefault(), "%.2f", value)
+    }
+
+    private fun calculateDurationHours(startMillis: Long, endMillis: Long): Double {
+        val durationMinutes = ((endMillis / 60000L) - (startMillis / 60000L)).coerceAtLeast(0L)
+        return durationMinutes / 60.0
     }
 
     companion object {
