@@ -97,13 +97,14 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var box2Button: MaterialButton
     private lateinit var formBox1Button: MaterialButton
     private lateinit var formBox2Button: MaterialButton
+    private lateinit var formBothBoxButton: MaterialButton
 
     private var selectedRevenueSingleDate: String? = null
     private var selectedRevenueRangeStartDate: String? = null
     private var selectedRevenueRangeEndDate: String? = null
     private var selectedAvailabilityDateMillis: Long = startOfDay(System.currentTimeMillis())
     private var selectedAvailabilityBoxName = "Box 1"
-    private var selectedFormBoxName = "Box 1"
+    private var selectedFormBoxSelection = FORM_BOX_1
 
     private val bookingDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     private val longDateFormatter = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
@@ -209,6 +210,7 @@ class HomeActivity : AppCompatActivity() {
         box2Button = findViewById(R.id.box2Button)
         formBox1Button = findViewById(R.id.formBox1Button)
         formBox2Button = findViewById(R.id.formBox2Button)
+        formBothBoxButton = findViewById(R.id.formBothBoxButton)
     }
 
     private fun setupAdapters() {
@@ -317,7 +319,7 @@ class HomeActivity : AppCompatActivity() {
                 customerName.ifBlank { getString(R.string.summary_empty_customer) },
                 customerPhone.ifBlank { getString(R.string.summary_empty_phone) }
             ).joinToString("\n")
-            summaryBoxText.text = selectedFormBoxName
+            summaryBoxText.text = getSelectedFormBoxLabel()
             summarySubtotalText.text = getString(R.string.currency_value, formatAmount(subTotal))
             summaryAdvanceText.text = getString(R.string.currency_value, formatAmount(advancePayment))
             summaryDiscountText.text = getString(R.string.currency_value, formatAmount(discount))
@@ -337,12 +339,17 @@ class HomeActivity : AppCompatActivity() {
         ).forEach { input -> input.doAfterTextChanged { updateSummary() } }
 
         formBox1Button.setOnClickListener {
-            selectedFormBoxName = "Box 1"
+            selectedFormBoxSelection = FORM_BOX_1
             updateFormBoxButtons()
             updateSummary()
         }
         formBox2Button.setOnClickListener {
-            selectedFormBoxName = "Box 2"
+            selectedFormBoxSelection = FORM_BOX_2
+            updateFormBoxButtons()
+            updateSummary()
+        }
+        formBothBoxButton.setOnClickListener {
+            selectedFormBoxSelection = FORM_BOX_BOTH
             updateFormBoxButtons()
             updateSummary()
         }
@@ -411,29 +418,48 @@ class HomeActivity : AppCompatActivity() {
         submitBookingButton.isEnabled = false
         addBookingLoader.visibility = View.VISIBLE
 
-        FirebaseRepository.addBooking(
-            bookingName = bookingName,
-            customerName = customerName,
-            customerPhone = customerPhone,
-            boxName = selectedFormBoxName,
-            startDateTimeMillis = confirmedStartMillis,
-            endDateTimeMillis = confirmedEndMillis,
-            pricePerHour = pricePerHourText,
-            advancePayment = advancePaymentText,
-            discount = discountText,
-            amount = formatAmount(finalAmount),
-            onSuccess = {
-                submitBookingButton.isEnabled = true
-                addBookingLoader.visibility = View.GONE
-                Toast.makeText(this, getString(R.string.booking_added_message), Toast.LENGTH_SHORT).show()
-                clearBookingForm()
-            },
-            onError = { error ->
-                submitBookingButton.isEnabled = true
-                addBookingLoader.visibility = View.GONE
-                Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
-            }
-        )
+        val selectedBoxes = getSelectedFormBoxes()
+        var pendingBookings = selectedBoxes.size
+        var hasFailed = false
+
+        selectedBoxes.forEach { boxName ->
+            FirebaseRepository.addBooking(
+                bookingName = bookingName,
+                customerName = customerName,
+                customerPhone = customerPhone,
+                boxName = boxName,
+                startDateTimeMillis = confirmedStartMillis,
+                endDateTimeMillis = confirmedEndMillis,
+                pricePerHour = pricePerHourText,
+                advancePayment = advancePaymentText,
+                discount = discountText,
+                amount = formatAmount(finalAmount),
+                onSuccess = {
+                    if (hasFailed) return@addBooking
+
+                    pendingBookings -= 1
+                    if (pendingBookings == 0) {
+                        submitBookingButton.isEnabled = true
+                        addBookingLoader.visibility = View.GONE
+                        Toast.makeText(
+                            this,
+                            if (selectedBoxes.size > 1) getString(R.string.booking_added_both_message)
+                            else getString(R.string.booking_added_message),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        clearBookingForm()
+                    }
+                },
+                onError = { error ->
+                    if (hasFailed) return@addBooking
+
+                    hasFailed = true
+                    submitBookingButton.isEnabled = true
+                    addBookingLoader.visibility = View.GONE
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
     }
 
     private fun clearBookingForm() {
@@ -447,11 +473,11 @@ class HomeActivity : AppCompatActivity() {
         discountInput.text = null
         startDateTimeInput.tag = null
         endDateTimeInput.tag = null
-        selectedFormBoxName = "Box 1"
+        selectedFormBoxSelection = FORM_BOX_1
         updateFormBoxButtons()
         summaryDateText.text = getString(R.string.summary_empty_date)
         summaryCustomerText.text = "${getString(R.string.summary_empty_customer)}\n${getString(R.string.summary_empty_phone)}"
-        summaryBoxText.text = selectedFormBoxName
+        summaryBoxText.text = getSelectedFormBoxLabel()
         summarySubtotalText.text = getString(R.string.currency_zero)
         summaryAdvanceText.text = getString(R.string.currency_zero)
         summaryDiscountText.text = getString(R.string.currency_zero)
@@ -740,8 +766,25 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun updateFormBoxButtons() {
-        setButtonSelected(formBox1Button, selectedFormBoxName == "Box 1")
-        setButtonSelected(formBox2Button, selectedFormBoxName == "Box 2")
+        setButtonSelected(formBox1Button, selectedFormBoxSelection == FORM_BOX_1)
+        setButtonSelected(formBox2Button, selectedFormBoxSelection == FORM_BOX_2)
+        setButtonSelected(formBothBoxButton, selectedFormBoxSelection == FORM_BOX_BOTH)
+    }
+
+    private fun getSelectedFormBoxes(): List<String> {
+        return when (selectedFormBoxSelection) {
+            FORM_BOX_2 -> listOf("Box 2")
+            FORM_BOX_BOTH -> listOf("Box 1", "Box 2")
+            else -> listOf("Box 1")
+        }
+    }
+
+    private fun getSelectedFormBoxLabel(): String {
+        return when (selectedFormBoxSelection) {
+            FORM_BOX_2 -> getString(R.string.box_2)
+            FORM_BOX_BOTH -> getString(R.string.box_both)
+            else -> getString(R.string.box_1)
+        }
     }
 
     private fun setButtonSelected(button: MaterialButton, isSelected: Boolean) {
@@ -788,6 +831,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val FORM_BOX_1 = "Box 1"
+        private const val FORM_BOX_2 = "Box 2"
+        private const val FORM_BOX_BOTH = "Both"
         private const val ONE_HOUR_MILLIS = 60L * 60L * 1000L
         private const val ONE_DAY_MILLIS = 24L * ONE_HOUR_MILLIS
 

@@ -380,8 +380,10 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/formBox1Button"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:minWidth="0dp"
                                 android:text="@string/box_1"
                                 app:cornerRadius="14dp" />
@@ -389,11 +391,23 @@
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/formBox2Button"
                                 style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="10dp"
+                                android:layout_weight="1"
                                 android:minWidth="0dp"
                                 android:text="@string/box_2"
+                                app:cornerRadius="14dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/formBothBoxButton"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:minWidth="0dp"
+                                android:text="@string/box_both"
                                 app:cornerRadius="14dp" />
                         </LinearLayout>
 
