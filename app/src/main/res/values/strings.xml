@@ -2,6 +2,8 @@
     <string name="app_name">CricketBookingApp</string>
     <string name="splash_tagline">Book your cricket matches with ease</string>
     <string name="splash_logo_content_description">Cricket Booking App logo</string>
+    <string name="made_by_ritesh">Made By Ritesh</string>
+    <string name="red_heart">❤</string>
     <string name="auth_heading">Welcome Back</string>
     <string name="auth_subheading">Sign in or create an account to continue</string>
     <string name="tab_sign_in">Sign In</string>
