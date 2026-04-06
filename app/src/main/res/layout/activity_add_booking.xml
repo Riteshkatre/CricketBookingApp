@@ -5,7 +5,7 @@
     android:id="@+id/addBookingRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF7F1"
+    android:background="@color/screen_bg"
     android:fillViewport="true"
     tools:context=".AddBookingActivity">
 
@@ -22,24 +22,24 @@
             android:background="@android:color/transparent"
             android:navigationIcon="@android:drawable/ic_media_previous"
             android:title="@string/add_booking_title"
-            android:titleTextColor="#10261D" />
+            android:titleTextColor="@color/text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/booking_form_intro"
-            android:textColor="#5E7368"
+            android:textColor="@color/text_secondary"
             android:textSize="15sp" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            app:cardBackgroundColor="@android:color/white"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="26dp"
             app:cardElevation="3dp"
-            app:strokeColor="#DDEBE2"
+            app:strokeColor="@color/stroke_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -52,7 +52,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/booking_form_section_title"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -192,10 +192,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    app:cardBackgroundColor="#FCFEFD"
+                    app:cardBackgroundColor="@color/surface_soft"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="0dp"
-                    app:strokeColor="#DAE8E0"
+                    app:strokeColor="@color/stroke_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -209,7 +209,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:text="@string/booking_summary"
-                            android:textColor="#66B774"
+                            android:textColor="@color/brand_accent_strong"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
@@ -224,7 +224,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:textColor="#10261D"
+                                android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 tools:text="27 Dec 2025&#10;08:00 PM - 10:00 PM" />
@@ -235,7 +235,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:gravity="end"
-                                android:textColor="#10261D"
+                                android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 tools:text="Mohit Kanthariya&#10;+91 9978526458" />
@@ -245,7 +245,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:layout_marginTop="14dp"
-                            android:background="#E5EEE9" />
+                            android:background="@color/stroke_soft" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -263,14 +263,14 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="@string/booking_sub_total"
-                                    android:textColor="#7A8C83"
+                                    android:textColor="@color/text_muted"
                                     android:textSize="14sp" />
 
                                 <TextView
                                     android:id="@+id/summarySubtotalText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#10261D"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="14sp"
                                     android:textStyle="bold"
                                     tools:text="Rs. 2600" />
@@ -287,14 +287,14 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="@string/advance_payment"
-                                    android:textColor="#7A8C83"
+                                    android:textColor="@color/text_muted"
                                     android:textSize="14sp" />
 
                                 <TextView
                                     android:id="@+id/summaryAdvanceText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#10261D"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="14sp"
                                     android:textStyle="bold"
                                     tools:text="Rs. 400" />
@@ -311,14 +311,14 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="@string/discount_label"
-                                    android:textColor="#7A8C83"
+                                    android:textColor="@color/text_muted"
                                     android:textSize="14sp" />
 
                                 <TextView
                                     android:id="@+id/summaryDiscountText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#10261D"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="14sp"
                                     android:textStyle="bold"
                                     tools:text="Rs. 200" />
@@ -335,7 +335,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="@string/total_amount"
-                                    android:textColor="#10261D"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
 
@@ -343,7 +343,7 @@
                                     android:id="@+id/summaryTotalText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#10261D"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
                                     tools:text="Rs. 2400" />
@@ -359,10 +359,10 @@
                     android:layout_marginTop="22dp"
                     android:paddingVertical="14dp"
                     android:text="@string/confirm_booking"
-                    app:backgroundTint="#93F0A8"
+                    app:backgroundTint="@color/brand_accent"
                     app:cornerRadius="14dp"
-                    app:iconTint="#0B3D2E"
-                    android:textColor="#0B3D2E" />
+                    app:iconTint="@color/brand_primary"
+                    android:textColor="@color/brand_primary" />
 
                 <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/addBookingLoader"

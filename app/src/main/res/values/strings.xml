@@ -109,5 +109,6 @@
     <string name="box_2">Box 2</string>
     <string name="available">Available</string>
     <string name="booked">Booked</string>
+    <string name="no_booked_slots">No booked slots for this date</string>
     <string name="empty_created_by">Unknown</string>
 </resources>

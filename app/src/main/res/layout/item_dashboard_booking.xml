@@ -8,10 +8,10 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@android:color/white"
+    app:cardBackgroundColor="@color/surface_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="1dp"
-    app:strokeColor="#DDEBE2"
+    app:strokeColor="@color/stroke_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -31,7 +31,7 @@
                 android:id="@+id/dashboardBookingTimeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#4E665B"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 tools:text="02:00 PM - 04:00 PM" />
@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#10261D"
+                android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="Test Box" />
@@ -51,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#687C72"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 tools:text="Mohit | 9978526458" />
         </LinearLayout>
@@ -60,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/right_chevron"
-            android:textColor="#9AABA2"
+            android:textColor="@color/text_muted"
             android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>

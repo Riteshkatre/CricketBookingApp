@@ -5,7 +5,7 @@
     android:id="@+id/homeRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF7F1"
+    android:background="@color/screen_bg"
     android:orientation="vertical"
     tools:context=".HomeActivity">
 
@@ -32,7 +32,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/home_dashboard_title"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="30sp"
                     android:textStyle="bold" />
 
@@ -47,7 +47,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        app:cardBackgroundColor="#93F0A8"
+                        app:cardBackgroundColor="@color/brand_accent"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="0dp">
 
@@ -61,7 +61,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/today_booking_count"
-                                android:textColor="#376247"
+                                android:textColor="@color/brand_primary"
                                 android:textSize="13sp" />
 
                             <TextView
@@ -70,7 +70,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
                                 android:text="0"
-                                android:textColor="#10261D"
+                                android:textColor="@color/text_primary"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -81,7 +81,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        app:cardBackgroundColor="#93F0A8"
+                        app:cardBackgroundColor="@color/brand_accent"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="0dp">
 
@@ -95,7 +95,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/last_7_days_revenue"
-                                android:textColor="#376247"
+                                android:textColor="@color/brand_primary"
                                 android:textSize="13sp" />
 
                             <TextView
@@ -104,7 +104,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
                                 android:text="@string/currency_zero"
-                                android:textColor="#10261D"
+                                android:textColor="@color/text_primary"
                                 android:textSize="26sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -123,7 +123,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/todays_bookings"
-                        android:textColor="#10261D"
+                        android:textColor="@color/text_primary"
                         android:textSize="22sp"
                         android:textStyle="bold" />
 
@@ -131,7 +131,7 @@
                         android:id="@+id/todayDateText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2E6B47"
+                        android:textColor="@color/brand_primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         tools:text="27 Dec, 2025" />
@@ -152,7 +152,7 @@
                     android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:text="@string/no_today_bookings"
-                    android:textColor="#6B7E75"
+                    android:textColor="@color/text_secondary"
                     android:visibility="gone" />
 
                 <TextView
@@ -160,7 +160,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
                     android:text="@string/upcoming_bookings"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
@@ -180,7 +180,7 @@
                     android:layout_marginTop="12dp"
                     android:padding="8dp"
                     android:text="@string/all_bookings"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
@@ -210,7 +210,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/availability_title"
-                        android:textColor="#10261D"
+                        android:textColor="@color/text_primary"
                         android:textSize="26sp"
                         android:textStyle="bold" />
 
@@ -221,7 +221,7 @@
                         android:contentDescription="@string/select_date"
                         android:padding="10dp"
                         android:src="@android:drawable/ic_menu_my_calendar"
-                        android:tint="#0B3D2E" />
+                        android:tint="@color/brand_primary" />
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -265,7 +265,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:gravity="center"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     tools:text="27 December 2025" />
@@ -277,6 +277,16 @@
                     android:layout_marginTop="16dp"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_availability_slot" />
+
+                <TextView
+                    android:id="@+id/noAvailabilitySlotsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:text="@string/no_booked_slots"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
@@ -298,7 +308,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/booking_form_section_title"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="26sp"
                     android:textStyle="bold" />
 
@@ -306,10 +316,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    app:cardBackgroundColor="@android:color/white"
+                    app:cardBackgroundColor="@color/surface_card"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="2dp"
-                    app:strokeColor="#DDEBE2"
+                    app:strokeColor="@color/stroke_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -478,10 +488,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            app:cardBackgroundColor="#FCFEFD"
+                            app:cardBackgroundColor="@color/surface_soft"
                             app:cardCornerRadius="18dp"
                             app:cardElevation="0dp"
-                            app:strokeColor="#DAE8E0"
+                            app:strokeColor="@color/stroke_soft"
                             app:strokeWidth="1dp">
 
                             <LinearLayout
@@ -495,7 +505,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center_horizontal"
                                     android:text="@string/booking_summary"
-                                    android:textColor="#66B774"
+                                    android:textColor="@color/brand_accent_strong"
                                     android:textSize="18sp"
                                     android:textStyle="bold" />
 
@@ -510,7 +520,7 @@
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textSize="14sp"
                                         android:textStyle="bold"
                                         tools:text="27 Dec 2025&#10;02:00 PM - 04:00 PM" />
@@ -521,7 +531,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:gravity="end"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textSize="14sp"
                                         android:textStyle="bold"
                                         tools:text="Mohit&#10;9978526458" />
@@ -532,7 +542,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="10dp"
-                                    android:textColor="#5E7368"
+                                    android:textColor="@color/text_secondary"
                                     android:textSize="13sp"
                                     tools:text="Box 1" />
 
@@ -547,13 +557,13 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:text="@string/booking_sub_total"
-                                        android:textColor="#7A8C83" />
+                                        android:textColor="@color/text_muted" />
 
                                     <TextView
                                         android:id="@+id/summarySubtotalText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textStyle="bold"
                                         tools:text="Rs. 2600" />
                                 </LinearLayout>
@@ -569,13 +579,13 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:text="@string/advance_payment"
-                                        android:textColor="#7A8C83" />
+                                        android:textColor="@color/text_muted" />
 
                                     <TextView
                                         android:id="@+id/summaryAdvanceText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textStyle="bold"
                                         tools:text="Rs. 400" />
                                 </LinearLayout>
@@ -591,13 +601,13 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:text="@string/discount_label"
-                                        android:textColor="#7A8C83" />
+                                        android:textColor="@color/text_muted" />
 
                                     <TextView
                                         android:id="@+id/summaryDiscountText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textStyle="bold"
                                         tools:text="Rs. 200" />
                                 </LinearLayout>
@@ -613,14 +623,14 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:text="@string/total_amount"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:id="@+id/summaryTotalText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textColor="#10261D"
+                                        android:textColor="@color/text_primary"
                                         android:textSize="18sp"
                                         android:textStyle="bold"
                                         tools:text="Rs. 2400" />
@@ -635,8 +645,8 @@
                             android:layout_marginTop="16dp"
                             android:paddingVertical="14dp"
                             android:text="@string/confirm_booking"
-                            android:textColor="#0B3D2E"
-                            app:backgroundTint="#93F0A8"
+                            android:textColor="@color/brand_primary"
+                            app:backgroundTint="@color/brand_accent"
                             app:cornerRadius="14dp" />
 
                         <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -676,7 +686,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/booking_history"
-                        android:textColor="#10261D"
+                        android:textColor="@color/text_primary"
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
@@ -690,7 +700,7 @@
                         app:cornerRadius="14dp"
                         app:icon="@android:drawable/ic_menu_save"
                         app:iconPadding="6dp"
-                        app:strokeColor="#0B3D2E" />
+                        app:strokeColor="@color/brand_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -710,7 +720,7 @@
                         app:cornerRadius="14dp"
                         app:icon="@android:drawable/ic_menu_my_calendar"
                         app:iconPadding="8dp"
-                        app:strokeColor="#0B3D2E" />
+                        app:strokeColor="@color/brand_primary" />
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/clearDateFilterButton"
@@ -721,7 +731,7 @@
                         android:contentDescription="@string/clear_date_filter"
                         android:padding="10dp"
                         android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        android:tint="#0B3D2E"
+                        android:tint="@color/brand_primary"
                         android:visibility="gone" />
                 </LinearLayout>
 
@@ -731,7 +741,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/last_days_bookings_default"
-                    android:textColor="#2E6B47"
+                    android:textColor="@color/brand_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -750,7 +760,7 @@
                     android:layout_marginTop="20dp"
                     android:gravity="center"
                     android:text="@string/no_data_here"
-                    android:textColor="#6B7E75"
+                    android:textColor="@color/text_secondary"
                     android:visibility="gone" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
@@ -760,9 +770,10 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="#0B3D2E"
-        app:itemTextColor="#0B3D2E"
+        android:background="@color/nav_bar_bg"
+        android:paddingTop="6dp"
+        app:itemIconTint="@color/nav_icon"
+        app:itemTextColor="@color/nav_icon"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/menu_bottom_navigation" />
 

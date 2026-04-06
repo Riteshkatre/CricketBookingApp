@@ -8,10 +8,10 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@android:color/white"
+    app:cardBackgroundColor="@color/surface_card"
     app:cardCornerRadius="22dp"
     app:cardElevation="2dp"
-    app:strokeColor="#DCE9E1"
+    app:strokeColor="@color/stroke_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -33,7 +33,7 @@
                 android:id="@+id/bookingDayText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#0B3D2E"
+                android:textColor="@color/brand_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 tools:text="27" />
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:gravity="center"
-                android:textColor="#587066"
+                android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 tools:text="Dec 2025" />
@@ -61,7 +61,7 @@
                 android:id="@+id/bookingTimeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#5E7368"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 tools:text="08:00 PM - 10:00 PM" />
@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textColor="#10261D"
+                android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 tools:text="Test Booking 1" />
@@ -81,7 +81,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textColor="#5E7368"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 tools:text="Mohit Kanthariya" />
 
@@ -90,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="#5E7368"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 tools:text="+91 9978526458" />
         </LinearLayout>
@@ -110,7 +110,7 @@
                 android:paddingTop="7dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="7dp"
-                android:textColor="#0B3D2E"
+                android:textColor="@color/brand_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 tools:text="Rs. 2400" />
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/right_chevron"
-                android:textColor="#9AABA2"
+                android:textColor="@color/text_muted"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </LinearLayout>

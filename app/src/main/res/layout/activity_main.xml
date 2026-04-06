@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F7F2"
+    android:background="@color/screen_bg"
     android:fillViewport="true"
     tools:context=".MainActivity">
 
@@ -19,10 +19,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@android:color/white"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="24dp"
             app:cardElevation="6dp"
-            app:strokeColor="#D6E3DA"
+            app:strokeColor="@color/stroke_mid"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -35,7 +35,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/auth_heading"
-                    android:textColor="#10261D"
+                    android:textColor="@color/text_primary"
                     android:textSize="28sp"
                     android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/auth_subheading"
-                    android:textColor="#5D6F66"
+                    android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
                 <com.google.android.material.tabs.TabLayout
@@ -52,10 +52,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    app:tabIndicatorColor="#0B3D2E"
+                    app:tabIndicatorColor="@color/brand_primary"
                     app:tabIndicatorFullWidth="false"
-                    app:tabSelectedTextColor="#0B3D2E"
-                    app:tabTextColor="#70837A">
+                    app:tabSelectedTextColor="@color/brand_primary"
+                    app:tabTextColor="@color/text_secondary">
 
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"
@@ -110,7 +110,7 @@
                         android:layout_marginTop="20dp"
                         android:paddingVertical="14dp"
                         android:text="@string/action_submit"
-                        app:backgroundTint="#0B3D2E"
+                        app:backgroundTint="@color/brand_primary"
                         app:cornerRadius="14dp" />
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -207,7 +207,7 @@
                         android:layout_marginTop="20dp"
                         android:paddingVertical="14dp"
                         android:text="@string/action_save"
-                        app:backgroundTint="#0B3D2E"
+                        app:backgroundTint="@color/brand_primary"
                         app:cornerRadius="14dp" />
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator

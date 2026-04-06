@@ -16,10 +16,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -63,6 +63,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var noTodayBookingsText: TextView
     private lateinit var allBookingsButtonText: TextView
     private lateinit var selectedAvailabilityDateText: TextView
+    private lateinit var noAvailabilitySlotsText: TextView
 
     private lateinit var bookingNameInput: TextInputEditText
     private lateinit var customerNameInput: TextInputEditText
@@ -115,9 +116,17 @@ class HomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.homeRoot)) { view, insets ->
+        val rootView = findViewById<View>(R.id.homeRoot)
+        val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+            view.setPadding(0, systemBars.top, 0, 0)
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
+                systemBars.bottom.coerceAtMost(8)
+            )
             insets
         }
 
@@ -166,6 +175,7 @@ class HomeActivity : AppCompatActivity() {
         noTodayBookingsText = findViewById(R.id.noTodayBookingsText)
         allBookingsButtonText = findViewById(R.id.allBookingsButtonText)
         selectedAvailabilityDateText = findViewById(R.id.selectedAvailabilityDateText)
+        noAvailabilitySlotsText = findViewById(R.id.noAvailabilitySlotsText)
 
         bookingNameInput = findViewById(R.id.bookingNameInput)
         customerNameInput = findViewById(R.id.customerNameInput)
@@ -228,7 +238,7 @@ class HomeActivity : AppCompatActivity() {
             adapter = availabilityDateAdapter
         }
         findViewById<RecyclerView>(R.id.availabilitySlotsRecyclerView).apply {
-            layoutManager = GridLayoutManager(this@HomeActivity, 2)
+            layoutManager = LinearLayoutManager(this@HomeActivity)
             adapter = availabilitySlotAdapter
         }
     }
@@ -485,34 +495,24 @@ class HomeActivity : AppCompatActivity() {
         availabilityDateAdapter.updateDates(buildDateOptions(), selectedAvailabilityDateMillis)
         selectedAvailabilityDateText.text = longDateFormatter.format(Date(selectedAvailabilityDateMillis))
 
-        val slots = mutableListOf<AvailabilitySlotItem>()
-        val startCalendar = Calendar.getInstance().apply {
-            timeInMillis = selectedAvailabilityDateMillis
-            set(Calendar.HOUR_OF_DAY, 12)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        repeat(12) {
-            val slotStart = startCalendar.timeInMillis
-            val slotEnd = slotStart + ONE_HOUR_MILLIS
-            val timeLabel = "${timeFormatter.format(Date(slotStart))} - ${timeFormatter.format(Date(slotEnd))}"
-            val isBooked = allBookings.any { booking ->
-                booking.boxName.equals(selectedAvailabilityBoxName, ignoreCase = true) &&
-                    isSameDay(booking.startDateTimeMillis, selectedAvailabilityDateMillis) &&
-                    booking.startDateTimeMillis < slotEnd &&
-                    booking.endDateTimeMillis > slotStart
+        val bookedSlots = allBookings
+            .filter {
+                it.boxName.equals(selectedAvailabilityBoxName, ignoreCase = true) &&
+                    isSameDay(it.startDateTimeMillis, selectedAvailabilityDateMillis)
             }
-            slots += AvailabilitySlotItem(
-                timeLabel = timeLabel,
-                statusLabel = getString(if (isBooked) R.string.booked else R.string.available),
-                isBooked = isBooked
-            )
-            startCalendar.timeInMillis = slotEnd
-        }
+            .sortedBy { it.startDateTimeMillis }
+            .map { booking ->
+                AvailabilitySlotItem(
+                    timeLabel = booking.timeRange,
+                    title = booking.name,
+                    subtitle = "${booking.displayCustomerName} | ${booking.boxName}",
+                    statusLabel = getString(R.string.booked),
+                    isBooked = true
+                )
+            }
 
-        availabilitySlotAdapter.updateItems(slots)
+        availabilitySlotAdapter.updateItems(bookedSlots)
+        noAvailabilitySlotsText.visibility = if (bookedSlots.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun renderRevenue() {
@@ -746,11 +746,11 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setButtonSelected(button: MaterialButton, isSelected: Boolean) {
         if (isSelected) {
-            button.setBackgroundColor(android.graphics.Color.parseColor("#93F0A8"))
-            button.setTextColor(android.graphics.Color.parseColor("#0B3D2E"))
+            button.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_accent))
+            button.setTextColor(ContextCompat.getColor(this, R.color.brand_primary_dark))
         } else {
-            button.setBackgroundColor(android.graphics.Color.WHITE)
-            button.setTextColor(android.graphics.Color.parseColor("#0B3D2E"))
+            button.setBackgroundColor(ContextCompat.getColor(this, R.color.surface_card))
+            button.setTextColor(ContextCompat.getColor(this, R.color.brand_primary))
         }
     }
 

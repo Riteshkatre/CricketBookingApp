@@ -13,7 +13,7 @@
         android:id="@+id/dateMonthText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#778A81"
+        android:textColor="@color/text_secondary"
         android:textSize="11sp"
         android:textStyle="bold"
         tools:text="Dec" />
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="#10261D"
+        android:textColor="@color/text_primary"
         android:textSize="22sp"
         android:textStyle="bold"
         tools:text="27" />
@@ -33,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="#778A81"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         tools:text="Sat" />
 

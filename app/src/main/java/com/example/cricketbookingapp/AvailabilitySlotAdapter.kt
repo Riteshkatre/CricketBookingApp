@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 data class AvailabilitySlotItem(
     val timeLabel: String,
+    val title: String,
+    val subtitle: String,
     val statusLabel: String,
     val isBooked: Boolean
 )
@@ -35,10 +37,14 @@ class AvailabilitySlotAdapter(
 
     class SlotViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val timeText: TextView = itemView.findViewById(R.id.slotTimeText)
+        private val titleText: TextView = itemView.findViewById(R.id.slotTitleText)
+        private val subtitleText: TextView = itemView.findViewById(R.id.slotSubtitleText)
         private val statusText: TextView = itemView.findViewById(R.id.slotStatusText)
 
         fun bind(item: AvailabilitySlotItem) {
             timeText.text = item.timeLabel
+            titleText.text = item.title
+            subtitleText.text = item.subtitle
             statusText.text = item.statusLabel
             itemView.setBackgroundResource(
                 if (item.isBooked) R.drawable.bg_slot_booked else R.drawable.bg_slot_available
@@ -46,6 +52,7 @@ class AvailabilitySlotAdapter(
             statusText.setBackgroundResource(
                 if (item.isBooked) R.drawable.bg_slot_status_booked else R.drawable.bg_slot_status_available
             )
+            subtitleText.visibility = if (item.subtitle.isBlank()) View.GONE else View.VISIBLE
         }
     }
 }
