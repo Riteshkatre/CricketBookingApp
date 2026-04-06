@@ -119,6 +119,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        allowScreenSharing()
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
         loadingDialog = BrandedLoadingDialog(this)

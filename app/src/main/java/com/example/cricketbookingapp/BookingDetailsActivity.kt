@@ -13,6 +13,7 @@ import com.google.android.material.appbar.MaterialToolbar
 class BookingDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        allowScreenSharing()
         enableEdgeToEdge()
         setContentView(R.layout.activity_booking_details)
 
