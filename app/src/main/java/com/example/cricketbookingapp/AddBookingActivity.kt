@@ -13,7 +13,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.text.SimpleDateFormat
@@ -25,11 +24,13 @@ class AddBookingActivity : AppCompatActivity() {
     private val dateTimeFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
     private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     private val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    private lateinit var loadingDialog: BrandedLoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_add_booking)
+        loadingDialog = BrandedLoadingDialog(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.addBookingRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -50,7 +51,6 @@ class AddBookingActivity : AppCompatActivity() {
         val advancePaymentInput = findViewById<TextInputEditText>(R.id.advancePaymentInput)
         val discountInput = findViewById<TextInputEditText>(R.id.discountInput)
         val submitButton = findViewById<MaterialButton>(R.id.submitBookingButton)
-        val addBookingLoader = findViewById<CircularProgressIndicator>(R.id.addBookingLoader)
 
         val bookingNameLayout = findViewById<TextInputLayout>(R.id.bookingNameLayout)
         val customerNameLayout = findViewById<TextInputLayout>(R.id.customerNameLayout)
@@ -189,7 +189,7 @@ class AddBookingActivity : AppCompatActivity() {
                 (discountText.toDoubleOrNull() ?: 0.0)).coerceAtLeast(0.0)
 
             submitButton.isEnabled = false
-            addBookingLoader.visibility = View.VISIBLE
+            loadingDialog.show()
 
             FirebaseRepository.addBooking(
                 bookingName = bookingName,
@@ -204,14 +204,14 @@ class AddBookingActivity : AppCompatActivity() {
                 amount = formatAmount(finalAmount),
                 onSuccess = {
                     submitButton.isEnabled = true
-                    addBookingLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     Toast.makeText(this, getString(R.string.booking_added_message), Toast.LENGTH_SHORT).show()
                     setResult(RESULT_OK)
                     finish()
                 },
                 onError = { error ->
                     submitButton.isEnabled = true
-                    addBookingLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                 }
             )
@@ -271,5 +271,10 @@ class AddBookingActivity : AppCompatActivity() {
     private fun calculateDurationHours(startMillis: Long, endMillis: Long): Double {
         val durationMinutes = ((endMillis / 60000L) - (startMillis / 60000L)).coerceAtLeast(0L)
         return durationMinutes / 60.0
+    }
+
+    override fun onDestroy() {
+        loadingDialog.hide()
+        super.onDestroy()
     }
 }

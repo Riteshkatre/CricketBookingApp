@@ -19,4 +19,6 @@
     <color name="nav_icon">#F7931E</color>
     <color name="nav_bar_bg">#FFF8F1</color>
     <color name="splash_text">#FFF2E1</color>
+    <color name="loader_scrim">#7A1A0F05</color>
+    <color name="loader_ring_track">#FAD4AE</color>
 </resources>

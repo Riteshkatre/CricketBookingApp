@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.firestore.ListenerRegistration
@@ -41,6 +40,8 @@ class HomeActivity : AppCompatActivity() {
     private var visibleRevenueBookings: List<BookingItem> = emptyList()
     private var showAllUpcomingBookings = false
     private var bookingListener: ListenerRegistration? = null
+    private var hasReceivedInitialBookings = false
+    private lateinit var loadingDialog: BrandedLoadingDialog
 
     private lateinit var revenueAdapter: BookingAdapter
     private lateinit var todayAdapter: DashboardBookingAdapter
@@ -79,7 +80,6 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var advancePaymentInput: TextInputEditText
     private lateinit var discountInput: TextInputEditText
     private lateinit var submitBookingButton: MaterialButton
-    private lateinit var addBookingLoader: CircularProgressIndicator
 
     private lateinit var bookingNameLayout: TextInputLayout
     private lateinit var customerNameLayout: TextInputLayout
@@ -121,6 +121,7 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
+        loadingDialog = BrandedLoadingDialog(this)
 
         val rootView = findViewById<View>(R.id.homeRoot)
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
@@ -148,12 +149,22 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        hasReceivedInitialBookings = false
+        loadingDialog.show()
         bookingListener = FirebaseRepository.listenToBookings(
             onUpdate = { bookings ->
+                if (!hasReceivedInitialBookings) {
+                    hasReceivedInitialBookings = true
+                    loadingDialog.hide()
+                }
                 allBookings = bookings.sortedBy { it.startDateTimeMillis }
                 refreshAllSections()
             },
             onError = { error ->
+                if (!hasReceivedInitialBookings) {
+                    hasReceivedInitialBookings = true
+                    loadingDialog.hide()
+                }
                 Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
             }
         )
@@ -162,6 +173,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onStop() {
         bookingListener?.remove()
         bookingListener = null
+        loadingDialog.hide()
         super.onStop()
     }
 
@@ -197,7 +209,6 @@ class HomeActivity : AppCompatActivity() {
         advancePaymentInput = findViewById(R.id.advancePaymentInput)
         discountInput = findViewById(R.id.discountInput)
         submitBookingButton = findViewById(R.id.submitBookingButton)
-        addBookingLoader = findViewById(R.id.addBookingLoader)
 
         bookingNameLayout = findViewById(R.id.bookingNameLayout)
         customerNameLayout = findViewById(R.id.customerNameLayout)
@@ -426,7 +437,7 @@ class HomeActivity : AppCompatActivity() {
             (discountText.toDoubleOrNull() ?: 0.0)).coerceAtLeast(0.0)
 
         submitBookingButton.isEnabled = false
-        addBookingLoader.visibility = View.VISIBLE
+        loadingDialog.show()
 
         val selectedBoxes = getSelectedFormBoxes()
         var pendingBookings = selectedBoxes.size
@@ -450,7 +461,7 @@ class HomeActivity : AppCompatActivity() {
                     pendingBookings -= 1
                     if (pendingBookings == 0) {
                         submitBookingButton.isEnabled = true
-                        addBookingLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         Toast.makeText(
                             this,
                             if (selectedBoxes.size > 1) getString(R.string.booking_added_both_message)
@@ -465,7 +476,7 @@ class HomeActivity : AppCompatActivity() {
 
                     hasFailed = true
                     submitBookingButton.isEnabled = true
-                    addBookingLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                 }
             )

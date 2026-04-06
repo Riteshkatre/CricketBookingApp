@@ -9,15 +9,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.tabs.TabLayout
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var loadingDialog: BrandedLoadingDialog
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        loadingDialog = BrandedLoadingDialog(this)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -36,8 +38,6 @@ class MainActivity : AppCompatActivity() {
         val signUpEmailInput = findViewById<TextInputEditText>(R.id.signUpEmailInput)
         val signUpPasswordInput = findViewById<TextInputEditText>(R.id.signUpPasswordInput)
         val saveButton = findViewById<MaterialButton>(R.id.signUpSaveButton)
-        val signInLoader = findViewById<CircularProgressIndicator>(R.id.signInLoader)
-        val signUpLoader = findViewById<CircularProgressIndicator>(R.id.signUpLoader)
 
         fun showTab(position: Int) {
             signInContainer.visibility = if (position == 0) View.VISIBLE else View.GONE
@@ -70,19 +70,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             submitButton.isEnabled = false
-            signInLoader.visibility = View.VISIBLE
+            loadingDialog.show()
             FirebaseRepository.signInWithEmail(
                 email = email,
                 password = password,
                 onSuccess = {
                     submitButton.isEnabled = true
-                    signInLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     startActivity(Intent(this, HomeActivity::class.java))
                     finish()
                 },
                 onError = { error ->
                     submitButton.isEnabled = true
-                    signInLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                 }
             )
@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             saveButton.isEnabled = false
-            signUpLoader.visibility = View.VISIBLE
+            loadingDialog.show()
             FirebaseRepository.signUp(
                 firstName = firstName,
                 lastName = lastName,
@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity() {
                 password = password,
                 onSuccess = {
                     saveButton.isEnabled = true
-                    signUpLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     Toast.makeText(this, getString(R.string.sign_up_saved_message), Toast.LENGTH_SHORT).show()
                     signUpFirstNameInput.text = null
                     signUpLastNameInput.text = null
@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
                 },
                 onError = { error ->
                     saveButton.isEnabled = true
-                    signUpLoader.visibility = View.GONE
+                    loadingDialog.hide()
                     val message = when (error) {
                         "Mobile number already registered" -> getString(R.string.mobile_already_registered)
                         else -> error
@@ -144,5 +144,10 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         }
+    }
+
+    override fun onDestroy() {
+        loadingDialog.hide()
+        super.onDestroy()
     }
 }
