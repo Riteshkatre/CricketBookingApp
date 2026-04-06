@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CricketBookingApp</string>
+    <string name="app_name">Skye Box Cricket</string>
     <string name="splash_tagline">Book your cricket matches with ease</string>
     <string name="splash_logo_content_description">Cricket Booking App logo</string>
     <string name="made_by_ritesh">Made By Ritesh</string>
@@ -121,5 +121,6 @@
     <string name="booked">Booked</string>
     <string name="no_booked_slots">No booked slots for this date</string>
     <string name="booking_added_both_message">Event added for both boxes</string>
+    <string name="booking_time_conflict">This time slot is already booked for %1$s on %2$s (%3$s)</string>
     <string name="empty_created_by">Unknown</string>
 </resources>

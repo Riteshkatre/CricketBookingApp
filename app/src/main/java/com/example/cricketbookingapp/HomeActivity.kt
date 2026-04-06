@@ -346,6 +346,7 @@ class HomeActivity : AppCompatActivity() {
             summaryAdvanceText.text = getString(R.string.currency_value, formatAmount(advancePayment))
             summaryDiscountText.text = getString(R.string.currency_value, formatAmount(discount))
             summaryTotalText.text = getString(R.string.currency_value, formatAmount(finalTotal))
+            updateBookingConflictState(startMillis, endMillis)
         }
 
         configureDateTimeField(startDateTimeInput, updateSummary)
@@ -417,6 +418,17 @@ class HomeActivity : AppCompatActivity() {
                 discountLayout.error = getString(R.string.invalid_booking_amount)
             startMillis != null && endMillis != null && endMillis <= startMillis ->
                 endDateTimeLayout.error = getString(R.string.end_must_be_after_start)
+            startMillis != null && endMillis != null -> {
+                val conflict = findConflictingBooking(startMillis, endMillis, getSelectedFormBoxes())
+                if (conflict != null) {
+                    endDateTimeLayout.error = getString(
+                        R.string.booking_time_conflict,
+                        conflict.boxName,
+                        conflict.date,
+                        conflict.timeRange
+                    )
+                }
+            }
         }
 
         if (listOf(
@@ -504,6 +516,8 @@ class HomeActivity : AppCompatActivity() {
         summaryAdvanceText.text = getString(R.string.currency_zero)
         summaryDiscountText.text = getString(R.string.currency_zero)
         summaryTotalText.text = getString(R.string.currency_zero)
+        startDateTimeLayout.error = null
+        endDateTimeLayout.error = null
     }
 
     private fun refreshAllSections() {
@@ -812,6 +826,35 @@ class HomeActivity : AppCompatActivity() {
         setButtonSelected(formBox1Button, selectedFormBoxSelection == FORM_BOX_1)
         setButtonSelected(formBox2Button, selectedFormBoxSelection == FORM_BOX_2)
         setButtonSelected(formBothBoxButton, selectedFormBoxSelection == FORM_BOX_BOTH)
+    }
+
+    private fun updateBookingConflictState(startMillis: Long?, endMillis: Long?) {
+        if (startMillis == null || endMillis == null) {
+            endDateTimeLayout.error = null
+            return
+        }
+
+        if (endMillis <= startMillis) {
+            endDateTimeLayout.error = getString(R.string.end_must_be_after_start)
+            return
+        }
+
+        val conflict = findConflictingBooking(startMillis, endMillis, getSelectedFormBoxes())
+        endDateTimeLayout.error = conflict?.let {
+            getString(R.string.booking_time_conflict, it.boxName, it.date, it.timeRange)
+        }
+    }
+
+    private fun findConflictingBooking(
+        startMillis: Long,
+        endMillis: Long,
+        boxNames: List<String>
+    ): BookingItem? {
+        return allBookings.firstOrNull { booking ->
+            boxNames.any { boxName -> booking.boxName.equals(boxName, ignoreCase = true) } &&
+                startMillis < booking.endDateTimeMillis &&
+                endMillis > booking.startDateTimeMillis
+        }
     }
 
     private fun getSelectedFormBoxes(): List<String> {
