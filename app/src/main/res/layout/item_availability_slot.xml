@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginBottom="10dp"
     android:background="@drawable/bg_slot_booked"
     android:orientation="vertical"
@@ -49,5 +50,34 @@
         android:textColor="@color/brand_primary"
         android:textSize="12sp"
         tools:text="Booked" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/editAvailabilityButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:cropToPadding="true"
+            android:background="@drawable/bg_clear_filter_circle"
+            android:contentDescription="@string/edit_booking"
+            android:padding="10dp"
+            android:tint="@color/brand_primary"
+            android:src="@drawable/round_mode_edit_24" />
+
+        <ImageButton
+            android:id="@+id/deleteAvailabilityButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_clear_filter_circle"
+            android:contentDescription="@string/delete_booking"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:tint="@color/brand_primary" />
+    </LinearLayout>
 
 </LinearLayout>

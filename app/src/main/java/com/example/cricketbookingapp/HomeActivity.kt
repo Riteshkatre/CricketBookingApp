@@ -110,6 +110,7 @@ class HomeActivity : AppCompatActivity() {
     private var selectedAvailabilityDateMillis: Long = startOfDay(System.currentTimeMillis())
     private var selectedAvailabilityBoxName = "Box 1"
     private var selectedFormBoxSelection = FORM_BOX_1
+    private var editingBookingId: String? = null
 
     private val bookingDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     private val longDateFormatter = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
@@ -236,14 +237,33 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupAdapters() {
-        revenueAdapter = BookingAdapter(emptyList()) { openBookingDetails(it) }
-        todayAdapter = DashboardBookingAdapter(emptyList()) { openBookingDetails(it) }
-        upcomingAdapter = DashboardBookingAdapter(emptyList()) { openBookingDetails(it) }
+        revenueAdapter = BookingAdapter(
+            emptyList(),
+            onBookingClick = { openBookingDetails(it) },
+            onEditClick = { startEditingBooking(it) },
+            onDeleteClick = { confirmDeleteBooking(it) }
+        )
+        todayAdapter = DashboardBookingAdapter(
+            emptyList(),
+            onBookingClick = { openBookingDetails(it) },
+            onEditClick = { startEditingBooking(it) },
+            onDeleteClick = { confirmDeleteBooking(it) }
+        )
+        upcomingAdapter = DashboardBookingAdapter(
+            emptyList(),
+            onBookingClick = { openBookingDetails(it) },
+            onEditClick = { startEditingBooking(it) },
+            onDeleteClick = { confirmDeleteBooking(it) }
+        )
         availabilityDateAdapter = AvailabilityDateAdapter(emptyList()) { dateMillis ->
             selectedAvailabilityDateMillis = startOfDay(dateMillis)
             renderAvailability()
         }
-        availabilitySlotAdapter = AvailabilitySlotAdapter(emptyList())
+        availabilitySlotAdapter = AvailabilitySlotAdapter(
+            emptyList(),
+            onEditClick = { startEditingBooking(it) },
+            onDeleteClick = { confirmDeleteBooking(it) }
+        )
 
         findViewById<RecyclerView>(R.id.bookingRecyclerView).apply {
             layoutManager = LinearLayoutManager(this@HomeActivity)
@@ -372,6 +392,10 @@ class HomeActivity : AppCompatActivity() {
             updateSummary()
         }
         formBothBoxButton.setOnClickListener {
+            if (editingBookingId != null) {
+                Toast.makeText(this, getString(R.string.edit_single_box_only_message), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             selectedFormBoxSelection = FORM_BOX_BOTH
             updateFormBoxButtons()
             updateSummary()
@@ -419,7 +443,12 @@ class HomeActivity : AppCompatActivity() {
             startMillis != null && endMillis != null && endMillis <= startMillis ->
                 endDateTimeLayout.error = getString(R.string.end_must_be_after_start)
             startMillis != null && endMillis != null -> {
-                val conflict = findConflictingBooking(startMillis, endMillis, getSelectedFormBoxes())
+                val conflict = findConflictingBooking(
+                    startMillis,
+                    endMillis,
+                    getSelectedFormBoxes(),
+                    editingBookingId
+                )
                 if (conflict != null) {
                     endDateTimeLayout.error = getString(
                         R.string.booking_time_conflict,
@@ -453,6 +482,36 @@ class HomeActivity : AppCompatActivity() {
         loadingDialog.show()
 
         val selectedBoxes = getSelectedFormBoxes()
+        val editingId = editingBookingId
+        if (editingId != null) {
+            FirebaseRepository.updateBooking(
+                bookingId = editingId,
+                bookingName = bookingName,
+                customerName = customerName,
+                customerPhone = customerPhone,
+                boxName = selectedBoxes.firstOrNull().orEmpty(),
+                startDateTimeMillis = confirmedStartMillis,
+                endDateTimeMillis = confirmedEndMillis,
+                pricePerHour = pricePerHourText,
+                advancePayment = advancePaymentText,
+                discount = discountText,
+                amount = formatAmount(finalAmount),
+                onSuccess = {
+                    submitBookingButton.isEnabled = true
+                    loadingDialog.hide()
+                    Toast.makeText(this, getString(R.string.booking_updated_message), Toast.LENGTH_SHORT).show()
+                    clearBookingForm()
+                    updateSectionVisibility(R.id.menu_revenue)
+                },
+                onError = { error ->
+                    submitBookingButton.isEnabled = true
+                    loadingDialog.hide()
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+            return
+        }
+
         var pendingBookings = selectedBoxes.size
         var hasFailed = false
 
@@ -507,6 +566,7 @@ class HomeActivity : AppCompatActivity() {
         discountInput.text = null
         startDateTimeInput.tag = null
         endDateTimeInput.tag = null
+        editingBookingId = null
         selectedFormBoxSelection = FORM_BOX_1
         updateFormBoxButtons()
         summaryDateText.text = getString(R.string.summary_empty_date)
@@ -516,8 +576,60 @@ class HomeActivity : AppCompatActivity() {
         summaryAdvanceText.text = getString(R.string.currency_zero)
         summaryDiscountText.text = getString(R.string.currency_zero)
         summaryTotalText.text = getString(R.string.currency_zero)
+        submitBookingButton.text = getString(R.string.confirm_booking)
         startDateTimeLayout.error = null
         endDateTimeLayout.error = null
+    }
+
+    private fun startEditingBooking(booking: BookingItem) {
+        editingBookingId = booking.id
+        selectedFormBoxSelection = when {
+            booking.boxName.equals("Box 2", ignoreCase = true) -> FORM_BOX_2
+            else -> FORM_BOX_1
+        }
+        updateFormBoxButtons()
+
+        bookingNameInput.setText(booking.name)
+        customerNameInput.setText(booking.customerName)
+        customerPhoneInput.setText(booking.customerPhone)
+        startDateTimeInput.setText(dateTimeFormatter.format(Date(booking.startDateTimeMillis)))
+        endDateTimeInput.setText(dateTimeFormatter.format(Date(booking.endDateTimeMillis)))
+        startDateTimeInput.tag = booking.startDateTimeMillis
+        endDateTimeInput.tag = booking.endDateTimeMillis
+        pricePerHourInput.setText(booking.pricePerHour)
+        advancePaymentInput.setText(booking.advancePayment)
+        discountInput.setText(booking.discount)
+        submitBookingButton.text = getString(R.string.update_booking)
+
+        updateSectionVisibility(R.id.menu_booking)
+        findViewById<BottomNavigationView>(R.id.bottomNavigation).selectedItemId = R.id.menu_booking
+        updateBookingConflictState(booking.startDateTimeMillis, booking.endDateTimeMillis)
+        Toast.makeText(this, getString(R.string.editing_booking_message), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun confirmDeleteBooking(booking: BookingItem) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_booking_title)
+            .setMessage(getString(R.string.delete_booking_message, booking.name))
+            .setPositiveButton(R.string.delete_action) { _, _ ->
+                loadingDialog.show()
+                FirebaseRepository.deleteBooking(
+                    bookingId = booking.id,
+                    onSuccess = {
+                        loadingDialog.hide()
+                        if (editingBookingId == booking.id) {
+                            clearBookingForm()
+                        }
+                        Toast.makeText(this, getString(R.string.booking_deleted_message), Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { error ->
+                        loadingDialog.hide()
+                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun refreshAllSections() {
@@ -572,7 +684,8 @@ class HomeActivity : AppCompatActivity() {
                     title = booking.name,
                     subtitle = "${booking.displayCustomerName} | ${booking.boxName}",
                     statusLabel = getString(R.string.booked),
-                    isBooked = true
+                    isBooked = true,
+                    booking = booking
                 )
             }
 
@@ -826,6 +939,7 @@ class HomeActivity : AppCompatActivity() {
         setButtonSelected(formBox1Button, selectedFormBoxSelection == FORM_BOX_1)
         setButtonSelected(formBox2Button, selectedFormBoxSelection == FORM_BOX_2)
         setButtonSelected(formBothBoxButton, selectedFormBoxSelection == FORM_BOX_BOTH)
+        formBothBoxButton.alpha = if (editingBookingId == null) 1f else 0.5f
     }
 
     private fun updateBookingConflictState(startMillis: Long?, endMillis: Long?) {
@@ -839,7 +953,12 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        val conflict = findConflictingBooking(startMillis, endMillis, getSelectedFormBoxes())
+        val conflict = findConflictingBooking(
+            startMillis,
+            endMillis,
+            getSelectedFormBoxes(),
+            editingBookingId
+        )
         endDateTimeLayout.error = conflict?.let {
             getString(R.string.booking_time_conflict, it.boxName, it.date, it.timeRange)
         }
@@ -848,9 +967,11 @@ class HomeActivity : AppCompatActivity() {
     private fun findConflictingBooking(
         startMillis: Long,
         endMillis: Long,
-        boxNames: List<String>
+        boxNames: List<String>,
+        excludedBookingId: String? = null
     ): BookingItem? {
         return allBookings.firstOrNull { booking ->
+            booking.id != excludedBookingId &&
             boxNames.any { boxName -> booking.boxName.equals(boxName, ignoreCase = true) } &&
                 startMillis < booking.endDateTimeMillis &&
                 endMillis > booking.startDateTimeMillis

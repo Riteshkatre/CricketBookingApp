@@ -187,4 +187,66 @@ object FirebaseRepository {
             onError = onError
         )
     }
+
+    fun updateBooking(
+        bookingId: String,
+        bookingName: String,
+        customerName: String,
+        customerPhone: String,
+        boxName: String,
+        startDateTimeMillis: Long,
+        endDateTimeMillis: Long,
+        pricePerHour: String,
+        advancePayment: String,
+        discount: String,
+        amount: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (bookingId.isBlank()) {
+            onError("Invalid booking id")
+            return
+        }
+
+        val payload = hashMapOf(
+            "bookingName" to bookingName,
+            "customerName" to customerName,
+            "customerPhone" to customerPhone,
+            "boxName" to boxName,
+            "startDateTimeMillis" to startDateTimeMillis,
+            "endDateTimeMillis" to endDateTimeMillis,
+            "pricePerHour" to pricePerHour,
+            "advancePayment" to advancePayment,
+            "discount" to discount,
+            "amount" to amount,
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+
+        firestore.collection(EVENTS_COLLECTION)
+            .document(bookingId)
+            .update(payload as Map<String, Any>)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { error ->
+                onError(error.localizedMessage ?: "Unable to update booking")
+            }
+    }
+
+    fun deleteBooking(
+        bookingId: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (bookingId.isBlank()) {
+            onError("Invalid booking id")
+            return
+        }
+
+        firestore.collection(EVENTS_COLLECTION)
+            .document(bookingId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { error ->
+                onError(error.localizedMessage ?: "Unable to delete booking")
+            }
+    }
 }

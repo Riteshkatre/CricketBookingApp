@@ -123,4 +123,14 @@
     <string name="booking_added_both_message">Event added for both boxes</string>
     <string name="booking_time_conflict">This time slot is already booked for %1$s on %2$s (%3$s)</string>
     <string name="empty_created_by">Unknown</string>
+    <string name="edit_booking">Edit booking</string>
+    <string name="delete_booking">Delete booking</string>
+    <string name="delete_booking_title">Delete booking</string>
+    <string name="delete_booking_message">Delete "%1$s" permanently?</string>
+    <string name="delete_action">Delete</string>
+    <string name="update_booking">Update Booking</string>
+    <string name="booking_updated_message">Booking updated successfully</string>
+    <string name="booking_deleted_message">Booking deleted successfully</string>
+    <string name="editing_booking_message">Booking loaded for editing</string>
+    <string name="edit_single_box_only_message">Edit supports one box at a time</string>
 </resources>

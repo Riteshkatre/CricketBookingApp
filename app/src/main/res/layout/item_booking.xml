@@ -115,14 +115,34 @@
                 android:textStyle="bold"
                 tools:text="Rs. 2400" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/right_chevron"
-                android:textColor="@color/text_muted"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/editBookingButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_clear_filter_circle"
+                    android:contentDescription="@string/edit_booking"
+                    android:padding="8dp"
+                    android:src="@drawable/round_mode_edit_24"
+                    android:tint="@color/brand_primary" />
+
+                <ImageButton
+                    android:id="@+id/deleteBookingButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_clear_filter_circle"
+                    android:contentDescription="@string/delete_booking"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_menu_delete"
+                    android:tint="@color/brand_primary" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

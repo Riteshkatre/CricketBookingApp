@@ -3,12 +3,15 @@ package com.example.cricketbookingapp
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class BookingAdapter(
     private var bookings: List<BookingItem>,
-    private val onBookingClick: (BookingItem) -> Unit
+    private val onBookingClick: (BookingItem) -> Unit,
+    private val onEditClick: (BookingItem) -> Unit,
+    private val onDeleteClick: (BookingItem) -> Unit
 ) : RecyclerView.Adapter<BookingAdapter.BookingViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookingViewHolder {
@@ -17,7 +20,7 @@ class BookingAdapter(
     }
 
     override fun onBindViewHolder(holder: BookingViewHolder, position: Int) {
-        holder.bind(bookings[position], onBookingClick)
+        holder.bind(bookings[position], onBookingClick, onEditClick, onDeleteClick)
     }
 
     override fun getItemCount(): Int = bookings.size
@@ -35,8 +38,15 @@ class BookingAdapter(
         private val bookingCustomer: TextView = itemView.findViewById(R.id.bookingCustomerText)
         private val bookingPhone: TextView = itemView.findViewById(R.id.bookingPhoneText)
         private val bookingAmount: TextView = itemView.findViewById(R.id.bookingAmountText)
+        private val editButton: ImageButton = itemView.findViewById(R.id.editBookingButton)
+        private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteBookingButton)
 
-        fun bind(item: BookingItem, onBookingClick: (BookingItem) -> Unit) {
+        fun bind(
+            item: BookingItem,
+            onBookingClick: (BookingItem) -> Unit,
+            onEditClick: (BookingItem) -> Unit,
+            onDeleteClick: (BookingItem) -> Unit
+        ) {
             val dateParts = item.date.split(" ")
             bookingDay.text = dateParts.firstOrNull().orEmpty()
             bookingMonth.text = dateParts.drop(1).joinToString(" ")
@@ -46,6 +56,8 @@ class BookingAdapter(
             bookingPhone.text = item.displayCustomerPhone
             bookingAmount.text = item.displayAmount
             itemView.setOnClickListener { onBookingClick(item) }
+            editButton.setOnClickListener { onEditClick(item) }
+            deleteButton.setOnClickListener { onDeleteClick(item) }
         }
     }
 }
