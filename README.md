@@ -11,7 +11,7 @@ Cricket Booking App is an Android application that allows users to view availabl
 - Shared booking visibility across users
 
 ## 🛠️ Tech Stack
-- Java
+- Kotlin
 - Android Studio
 - SQLite Database & Firebase 
 - RecyclerView
