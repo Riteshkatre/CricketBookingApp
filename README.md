@@ -34,7 +34,7 @@ Cricket Booking App is an Android application that allows users to view availabl
 <img src="screenshots/booking_summary.jpeg" width="200" height="400" />
 
 ### Revenue Screen
-<img src="screenshots/revenue_summary.jpeg" width="200" height="400" />
+<img src="screenshots/revenue_screen.jpeg" width="200" height="400" />
 
 
 ## ⚙️ Installation
