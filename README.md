@@ -19,7 +19,7 @@ This is an Android application that allows users to book cricket ground slots, v
 ## 📱 Screenshots
 
 ### Home Screen
-![Home](screenshots/home.png)
+![Home](screenshots/home_screen.jpeg)
 
 ### Booking Screen
 ![Booking](screenshots/booking.png)
