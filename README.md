@@ -19,10 +19,10 @@ This is an Android application that allows users to book cricket ground slots, v
 ## 📱 Screenshots
 
 ### Home Screen
-![Home](screenshots/home_screen.jpeg)
+<p align="center">
+  <img src="screenshots/home_screen.jpeg" width="300"/>
+</p>
 
-### Booking Screen
-![Booking](screenshots/booking.png)
 
 ## ⚙️ Installation
 1. Clone the repo
